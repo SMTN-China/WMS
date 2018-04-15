@@ -19,7 +19,4 @@
   <ItemGroup>
     <ProjectReference Include="..\LY.WMSCloud.Core\LY.WMSCloud.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="WMS\BaseData\StorageAreas\" />
-  </ItemGroup>
 </Project>
