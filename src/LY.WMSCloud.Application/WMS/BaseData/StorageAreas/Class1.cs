@@ -6,5 +6,6 @@ namespace LY.WMSCloud.WMS.BaseData.StorageAreas
 {
     class Class1
     {
+        int ss { get; set; }
     }
 }
