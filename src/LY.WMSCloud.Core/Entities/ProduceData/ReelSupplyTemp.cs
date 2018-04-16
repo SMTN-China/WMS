@@ -10,7 +10,7 @@ using System.Text;
 
 namespace LY.WMSCloud.Entities.ProduceData
 {
-    public class ReelSupplyTemp : Entity<string>, IAudited, IMustHaveTenant, IPassivable
+    public class ReelSupplyTemp : EntitieTenantBase
     {
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 站位Id
         /// </summary>
-        public int? SlotId { get; set; }
+        public string SlotId { get; set; }
         public Slot Slot { get; set; }
 
 
@@ -66,7 +66,9 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
         public string ReelMoveMethodId { get; set; }
         public ReelMoveMethod ReelMoveMethod { get; set; }
+        [StringLength(36)]
 
+        public string FisrtStorageLocationId { get; set; }
 
         /// <summary>
         /// 此料号总需求数量
@@ -90,12 +92,5 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         public bool IsCut { get; set; }
         public bool IsSend { get; set; }
-        public bool IsActive { get; set; }
-
-        public long? CreatorUserId { get; set; }
-        public DateTime CreationTime { get; set; }
-        public long? LastModifierUserId { get; set; }
-        public DateTime? LastModificationTime { get; set; }
-        public int TenantId { get; set; }
     }
 }

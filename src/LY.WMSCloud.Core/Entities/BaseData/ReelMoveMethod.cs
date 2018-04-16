@@ -31,6 +31,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string InStorageId { get; set; }
+        [StringLength(36)]
         public Storage InStorage { get; set; }
 
         /// <summary>

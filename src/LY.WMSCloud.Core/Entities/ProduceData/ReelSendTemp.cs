@@ -47,7 +47,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 料站表Id
         /// </summary>
-        public int? SlotId { get; set; }
+        public string SlotId { get; set; }
         public Slot Slot { get; set; }
 
 
@@ -110,6 +110,8 @@ namespace LY.WMSCloud.Entities.ProduceData
         public DateTime CreationTime { get; set; }
         public long? LastModifierUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
+        [StringLength(36)]
+        public string FisrtStorageLocationId { get; set; }
         public int TenantId { get; set; }
     }
 }

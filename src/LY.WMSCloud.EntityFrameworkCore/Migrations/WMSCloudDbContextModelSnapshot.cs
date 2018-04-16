@@ -3,6 +3,9 @@ using Abp.Authorization;
 using Abp.BackgroundJobs;
 using Abp.Events.Bus.Entities;
 using Abp.Notifications;
+using LY.WMSCloud.Entities.BaseData;
+using LY.WMSCloud.Entities.ProduceData;
+using LY.WMSCloud.Entities.StorageData;
 using LY.WMSCloud.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -1006,6 +1009,430 @@ namespace LY.WMSCloud.Migrations
                     b.ToTable("AbpUsers");
                 });
 
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.BarCodeAnalysis", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ClassName")
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsReplace");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("PropertyName")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("RegEX")
+                        .HasMaxLength(2000);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("Test")
+                        .HasMaxLength(1000);
+
+                    b.Property<string>("TestValue")
+                        .HasMaxLength(500);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WMSBarCodeAnalysis");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.BOM", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("AllowableMoreSend");
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<double>("MoreSendPercentage");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(10);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WMSBOM");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.Customer", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WMSCustomer");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.Line", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("ForCustomerMStorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ForSelfMStorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ForCustomerMStorageId");
+
+                    b.HasIndex("ForSelfMStorageId");
+
+                    b.ToTable("WMSLine");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.MPN", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<string>("CustomerId")
+                        .HasMaxLength(36);
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<int>("IncomingMethod");
+
+                    b.Property<string>("Info")
+                        .HasMaxLength(500);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<int>("MPNHierarchy");
+
+                    b.Property<int>("MPNLevel");
+
+                    b.Property<int>("MPNType");
+
+                    b.Property<string>("MPQs")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("MSDLevel");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("RegisterStorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<double>("ShelfLife");
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("RegisterStorageId");
+
+                    b.ToTable("WMSMPN");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.ReadySlot", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<int>("BoardSide");
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<int>("DemandQty");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("Feeder")
+                        .HasMaxLength(50);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("LineSide");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(1000);
+
+                    b.Property<string>("Machine")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("MachineType")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("SendPartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("SendQty");
+
+                    b.Property<int>("Side");
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<string>("SlotName")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Table")
+                        .HasMaxLength(10);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(20);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ReReadyMBillId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("SendPartNoId");
+
+                    b.HasIndex("SlotId");
+
+                    b.ToTable("WMSReadySlot");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.Slot", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("BoardSide");
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("Feeder")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("Index");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(30);
+
+                    b.Property<int>("LineSide");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(1000);
+
+                    b.Property<string>("Machine")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("MachineType")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<int>("Side");
+
+                    b.Property<string>("SlotName")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Table")
+                        .HasMaxLength(10);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(10);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WMSSlot");
+                });
+
             modelBuilder.Entity("LY.WMSCloud.Entities.Menu", b =>
                 {
                     b.Property<int>("Id")
@@ -1108,6 +1535,1109 @@ namespace LY.WMSCloud.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("SysOrg");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBill", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<int>("ConsumingTime");
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<DateTime>("DeliverObject");
+
+                    b.Property<DateTime>("DeliverTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Linestr")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("MakeDetailsType");
+
+                    b.Property<int>("Priority");
+
+                    b.Property<string>("Productstr")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("ReReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("ReadyMType");
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("WorkBilQtys")
+                        .HasMaxLength(100);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReReadyMBillId");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.ToTable("WMSReadyMBill");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<string>("BOMId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("BatchCodes")
+                        .HasMaxLength(50);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<int>("DemandQty");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<int>("FollowQty");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsCut");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("PriorityReplacePN");
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReplacePNs")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("ReturnQty");
+
+                    b.Property<int>("SendQty");
+
+                    b.Property<string>("Suppliers")
+                        .HasMaxLength(50);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReadyMBillId");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.ToTable("WMSReadyMBillDetailed");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBillWorkBillMap", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReadyMBillId");
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("WorkBillId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadyMBillId");
+
+                    b.HasIndex("WorkBillId");
+
+                    b.ToTable("WMSReadyMBillWorkBillMap");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReceivedReelBill", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("IQCCheckId")
+                        .HasMaxLength(30);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("PoId")
+                        .HasMaxLength(200);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<int>("ReceivedQty");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNoId");
+
+                    b.ToTable("WMSReceivedReelBill");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.Reel", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(60);
+
+                    b.Property<string>("BatchCode")
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<string>("DateCode")
+                        .HasMaxLength(15);
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<double>("ExtendShelfLife");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("IQCCheckId")
+                        .HasMaxLength(30);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsUseed");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LotCode")
+                        .HasMaxLength(50);
+
+                    b.Property<DateTime>("MakeDate");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("PoId")
+                        .HasMaxLength(30);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillId")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("ReceivedReelBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<string>("StorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageLocationId1");
+
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(30);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("WorkBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("WorkBillId")
+                        .HasMaxLength(36);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("ReadyMBillId");
+
+                    b.HasIndex("ReceivedReelBillId");
+
+                    b.HasIndex("StorageId");
+
+                    b.HasIndex("StorageLocationId");
+
+                    b.HasIndex("StorageLocationId1");
+
+                    b.HasIndex("WorkBillDetailedId");
+
+                    b.HasIndex("WorkBillId");
+
+                    b.ToTable("WMSReel");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelMoveLog", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReceivedReelBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReelId")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<string>("StorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("WorkBillId")
+                        .HasMaxLength(36);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("ReadyMBillId");
+
+                    b.HasIndex("ReceivedReelBillId");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.HasIndex("SlotId");
+
+                    b.HasIndex("StorageLocationId");
+
+                    b.HasIndex("WorkBillId");
+
+                    b.ToTable("WMSReelMoveMethodLog");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<string>("AllocationTypesStr")
+                        .HasMaxLength(100);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("InStorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InStorageId");
+
+                    b.ToTable("WMSReelMoveMethod");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelSendTemp", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(60);
+
+                    b.Property<string>("BOMId")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<int>("DemandQty");
+
+                    b.Property<int>("DemandSendQty");
+
+                    b.Property<string>("FisrtStorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsCut");
+
+                    b.Property<bool>("IsSend");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("SelectQty");
+
+                    b.Property<int>("SendQty");
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<string>("StorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReReadyMBillId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.HasIndex("SlotId");
+
+                    b.HasIndex("StorageLocationId");
+
+                    b.ToTable("WMSReelSendTemp");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelShortTemp", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<string>("BOMId")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<int>("DemandQty");
+
+                    b.Property<int>("DemandSendQty");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("SelectQty");
+
+                    b.Property<int>("ShortQty");
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReReadyMBillId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("SlotId");
+
+                    b.ToTable("WMSReelShortTemp");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelSupplyTemp", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(60);
+
+                    b.Property<string>("BOMId")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<int>("DemandQty");
+
+                    b.Property<int>("DemandSendQty");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("FisrtStorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsCut");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<bool>("IsSend");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReReadyMBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReadyMBillDetailedId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("SelectQty");
+
+                    b.Property<int>("SendQty");
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<string>("StorageLocationId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReReadyMBillId");
+
+                    b.HasIndex("ReadyMBillDetailedId");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.HasIndex("SlotId");
+
+                    b.HasIndex("StorageLocationId");
+
+                    b.ToTable("WMSReelSupplyTemp");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.UPH", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Meter");
+
+                    b.Property<int>("Pin");
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WMSUPH");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.WorkBill", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<DateTime>("EndTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LineId")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("PlanEndTime");
+
+                    b.Property<DateTime>("PlanStartTime");
+
+                    b.Property<string>("ProductId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("ProductionQty");
+
+                    b.Property<int>("Qty");
+
+                    b.Property<int>("ReadyMQty");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<DateTime>("StartTime");
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<int>("WorkBillStatus");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LineId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("WMSWorkBill");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.WorkBillDetailed", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<string>("BOMId")
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<int>("ReturnQty");
+
+                    b.Property<int>("SendQty");
+
+                    b.Property<string>("SlotId");
+
+                    b.Property<int>("TenantId");
+
+                    b.Property<string>("WorkBillId")
+                        .HasMaxLength(36);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("SlotId");
+
+                    b.HasIndex("WorkBillId");
+
+                    b.ToTable("WMSWorkBillDetailed");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.MPNStorageAreaMap", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("MPNId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageAreaId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MPNId");
+
+                    b.HasIndex("StorageAreaId");
+
+                    b.ToTable("WMSMPNStorageAreaMap");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.RMMStorageMap", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(36);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("ReelMoveMethodId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReelMoveMethodId");
+
+                    b.HasIndex("StorageId");
+
+                    b.ToTable("WMSRMMStorageMap");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.Storage", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<int?>("AboutUserId");
+
+                    b.Property<long?>("AboutUserId1");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<int>("IncomingMethod");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AboutUserId1");
+
+                    b.ToTable("WMSStorage");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.StorageArea", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WMSStorageArea");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.StorageLocation", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<int>("BrightColor");
+
+                    b.Property<int>("BrightState");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<int>("MainBoardId");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<int>("PositionId");
+
+                    b.Property<string>("ReelId")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<string>("StorageAreaId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("StorageLocationTypeId")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReelId");
+
+                    b.HasIndex("StorageAreaId");
+
+                    b.HasIndex("StorageId");
+
+                    b.HasIndex("StorageLocationTypeId");
+
+                    b.ToTable("WMSStorageLocation");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.StorageLocationType", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<long?>("DeleterUserId");
+
+                    b.Property<DateTime?>("DeletionTime");
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsDeleted");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<bool>("MoreMateriel");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(500);
+
+                    b.Property<int>("TenantId");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WMSStorageLocationType");
                 });
 
             modelBuilder.Entity("LY.WMSCloud.MultiTenancy.Tenant", b =>
@@ -1314,6 +2844,85 @@ namespace LY.WMSCloud.Migrations
                         .HasForeignKey("LastModifierUserId");
                 });
 
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.BOM", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.Line", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "ForCustomerMStorage")
+                        .WithMany()
+                        .HasForeignKey("ForCustomerMStorageId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "ForSelfMStorage")
+                        .WithMany()
+                        .HasForeignKey("ForSelfMStorageId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.MPN", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "RegisterStorage")
+                        .WithMany()
+                        .HasForeignKey("RegisterStorageId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.ReadySlot", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Line", "Line")
+                        .WithMany()
+                        .HasForeignKey("LineId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "SendPartNo")
+                        .WithMany()
+                        .HasForeignKey("SendPartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.BaseData.Slot", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Line", "Line")
+                        .WithMany()
+                        .HasForeignKey("LineId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+                });
+
             modelBuilder.Entity("LY.WMSCloud.Entities.Menu", b =>
                 {
                     b.HasOne("LY.WMSCloud.Entities.Menu", "Parent")
@@ -1326,6 +2935,301 @@ namespace LY.WMSCloud.Migrations
                     b.HasOne("LY.WMSCloud.Entities.Org", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBill", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany()
+                        .HasForeignKey("ReelMoveMethodId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany()
+                        .HasForeignKey("ReelMoveMethodId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBillWorkBillMap", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReadyMBill")
+                        .WithMany("WorkBills")
+                        .HasForeignKey("ReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.WorkBill", "WorkBill")
+                        .WithMany("ReadyMBills")
+                        .HasForeignKey("WorkBillId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReceivedReelBill", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.Reel", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReceivedReelBill", "ReceivedReelBill")
+                        .WithMany()
+                        .HasForeignKey("ReceivedReelBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "Storage")
+                        .WithMany()
+                        .HasForeignKey("StorageId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageLocation", "StorageLocation")
+                        .WithMany()
+                        .HasForeignKey("StorageLocationId1");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.WorkBillDetailed", "WorkBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("WorkBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.WorkBill", "WorkBill")
+                        .WithMany()
+                        .HasForeignKey("WorkBillId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelMoveLog", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReceivedReelBill", "ReceivedReelBill")
+                        .WithMany()
+                        .HasForeignKey("ReceivedReelBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany()
+                        .HasForeignKey("ReelMoveMethodId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageLocation", "StorageLocation")
+                        .WithMany()
+                        .HasForeignKey("StorageLocationId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.WorkBill", "WorkBill")
+                        .WithMany()
+                        .HasForeignKey("WorkBillId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "InStorage")
+                        .WithMany()
+                        .HasForeignKey("InStorageId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelSendTemp", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany()
+                        .HasForeignKey("ReelMoveMethodId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageLocation", "StorageLocation")
+                        .WithMany()
+                        .HasForeignKey("StorageLocationId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelShortTemp", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelSupplyTemp", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
+                        .WithMany()
+                        .HasForeignKey("ReReadyMBillId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBillDetailed", "ReadyMBillDetailed")
+                        .WithMany()
+                        .HasForeignKey("ReadyMBillDetailedId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany()
+                        .HasForeignKey("ReelMoveMethodId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageLocation", "StorageLocation")
+                        .WithMany()
+                        .HasForeignKey("StorageLocationId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.UPH", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Line", "Line")
+                        .WithMany()
+                        .HasForeignKey("LineId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.WorkBill", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Line", "Line")
+                        .WithMany()
+                        .HasForeignKey("LineId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.WorkBillDetailed", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.WorkBill", "WorkBill")
+                        .WithMany()
+                        .HasForeignKey("WorkBillId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.MPNStorageAreaMap", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "MPN")
+                        .WithMany("StorageAreas")
+                        .HasForeignKey("MPNId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageArea", "StorageArea")
+                        .WithMany("MPNs")
+                        .HasForeignKey("StorageAreaId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.RMMStorageMap", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
+                        .WithMany("OutStorages")
+                        .HasForeignKey("ReelMoveMethodId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "Storage")
+                        .WithMany("ReelMoveMethods")
+                        .HasForeignKey("StorageId");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.Storage", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Authorization.Users.User", "AboutUser")
+                        .WithMany()
+                        .HasForeignKey("AboutUserId1");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.StorageData.StorageLocation", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageArea", "StorageArea")
+                        .WithMany("StorageLocations")
+                        .HasForeignKey("StorageAreaId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.Storage", "Storage")
+                        .WithMany()
+                        .HasForeignKey("StorageId");
+
+                    b.HasOne("LY.WMSCloud.Entities.StorageData.StorageLocationType", "StorageLocationType")
+                        .WithMany()
+                        .HasForeignKey("StorageLocationTypeId");
                 });
 
             modelBuilder.Entity("LY.WMSCloud.MultiTenancy.Tenant", b =>

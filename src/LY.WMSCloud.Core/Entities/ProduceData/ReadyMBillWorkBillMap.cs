@@ -10,10 +10,10 @@ namespace LY.WMSCloud.Entities.ProduceData
     public class ReadyMBillWorkBillMap : EntitieTenantBase
     {
 
-        public int ReadyMBillId { get; set; }
+        public string ReadyMBillId { get; set; }
         public ReadyMBill ReadyMBill { get; set; }
 
-        public int WorkBillId { get; set; }
+        public string WorkBillId { get; set; }
         public WorkBill WorkBill { get; set; }
         
         /// <summary>

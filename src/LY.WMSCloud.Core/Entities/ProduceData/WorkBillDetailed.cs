@@ -44,7 +44,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 站位Id
         /// </summary>
-        public int? SlotId { get; set; }
+        public string SlotId { get; set; }
         public Slot Slot { get; set; }
 
         /// <summary>

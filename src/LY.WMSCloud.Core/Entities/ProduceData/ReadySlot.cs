@@ -46,7 +46,7 @@ namespace LY.WMSCloud.Entities.BaseData
         /// <summary>
         /// 料站表Id
         /// </summary>
-        public int? SlotId { get; set; }
+        public string SlotId { get; set; }
         public Slot Slot { get; set; }
 
 

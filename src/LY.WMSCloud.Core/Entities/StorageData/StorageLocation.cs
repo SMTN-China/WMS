@@ -31,7 +31,6 @@ namespace LY.WMSCloud.Entities.StorageData
         /// </summary>
         [StringLength(100)]
         public string ReelId { get; set; }
-        public Reel Reel { get; set; }
 
         /// <summary>
         /// 主板Id
