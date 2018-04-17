@@ -10,10 +10,10 @@ namespace LY.WMSCloud.Entities
     public class Menu : EntitieCommonBase<int>
     {
         [StringLength(30)]
-        public string Name { get; set; }
+        public string Text { get; set; }
 
-        [StringLength(100)]
-        public string Translate { get; set; }
+        [StringLength(50)]
+        public string I18n { get; set; }
 
         public bool Group { get; set; }
 
@@ -26,7 +26,7 @@ namespace LY.WMSCloud.Entities
         [StringLength(10)]
         public string Target { get; set; }
 
-        [StringLength(50)]
+        [StringLength(30)]
         public string Icon { get; set; }
 
         public int Index { get; set; }
@@ -34,7 +34,7 @@ namespace LY.WMSCloud.Entities
         public int? ParentId { get; set; }
 
         public Menu Parent { get; set; }
-
+        [StringLength(30)]
         public string Acl { get; set; }
 
         public ICollection<Menu> Children { get; set; }

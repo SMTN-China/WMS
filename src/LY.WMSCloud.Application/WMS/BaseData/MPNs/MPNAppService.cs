@@ -20,20 +20,7 @@ namespace LY.WMSCloud.WMS.BaseData.MPNs
         {
             _repositoryCustomer = repositoryCustomer;
             _repositoryT = repositoryT;
-        }
-
-        public async Task<ICollection<CustomerDto>> GetCustomerById(string Id)
-        {
-            var res = await _repositoryCustomer.GetAll().Where(c => c.Id.Contains(Id)).Take(10).ToListAsync();
-
-            return ObjectMapper.Map<List<CustomerDto>>(res);
-        }
-
-        public async Task<ICollection<CustomerDto>> GetCustomerByKeyName(string keyName)
-        {
-            var res = await _repositoryCustomer.GetAll().Where(c => c.Id.Contains(keyName)).Take(10).ToListAsync();
-
-            return ObjectMapper.Map<List<CustomerDto>>(res);
+            _repository = repository;
         }
 
         public async Task<bool> BatchInsOrUpdate(ICollection<MPNDto> input)
@@ -94,6 +81,18 @@ namespace LY.WMSCloud.WMS.BaseData.MPNs
                 throw new LYException(ex.Message);
             }
 
+        }
+
+        public async Task<ICollection<MPNDto>> GetPartNoByKeyName(string keyName)
+        {
+            var res = await _repository.GetAll().Where(c => c.Id.Contains(keyName)).Take(10).ToListAsync();
+            return ObjectMapper.Map<List<MPNDto>>(res);
+        }
+
+        public async Task<ICollection<MPNDto>> GetProductByKeyName(string keyName)
+        {
+            var res = await _repository.GetAll().Where(c => c.MPNHierarchy == MPNHierarchy.Product && c.Id.Contains(keyName)).Take(10).ToListAsync();
+            return ObjectMapper.Map<List<MPNDto>>(res);
         }
 
     }

@@ -8,6 +8,8 @@ namespace LY.WMSCloud.WMS.BaseData.Storages
 {
     public interface IStorageAppService : IServiceBase<StorageDto, string>
     {
+        Task<ICollection<StorageDto>> GetCStorageByKeyName(string keyName);
+        Task<ICollection<StorageDto>> GetSStorageByKeyName(string keyName);
         Task<ICollection<StorageDto>> GetStorageByKeyName(string keyName);
     }
 }

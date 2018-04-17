@@ -11,9 +11,10 @@ namespace LY.WMSCloud.Sys.Menus.Dto
     {
         public MenuMapProfile()
         {
-            CreateMap<Menu, MenuDto>().ForMember(m => m.ParentName, o => o.MapFrom(m => GetParentName(m.ParentId)));
+            CreateMap<Menu, MenuDto>().ForMember(m => m.ParentName, o => o.MapFrom(m => GetParentName(m.ParentId)))
+                .ForMember(m => m.Name, o => o.MapFrom(m => m.Text));
 
-            CreateMap<Menu, MenuCDto>();
+            CreateMap<Menu, MenuCDto>().ForMember(m => m.Name, o => o.MapFrom(m => m.Text));
 
             CreateMap<MenuDto, Menu>();
         }
@@ -25,7 +26,7 @@ namespace LY.WMSCloud.Sys.Menus.Dto
                 return null;
             }
             var repositories = IocManager.Instance.Resolve<IWMSRepositories<Menu, int>>();
-            return repositories.Get(menuId.Value).Name;
+            return repositories.Get(menuId.Value).Text;
         }
     }
 }

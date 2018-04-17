@@ -7,6 +7,7 @@ using LY.WMSCloud.Authorization;
 using LY.WMSCloud.CommonService;
 using LY.WMSCloud.Entities.BaseData;
 using LY.WMSCloud.WMS.BaseData.BOMs.Dto;
+using LY.WMSCloud.WMS.BaseData.MPNs.Dto;
 using LY.WMSCloud.WMS.BaseData.StorageLocations;
 using LY.WMSCloud.WMS.BaseData.StorageLocations.Dto;
 using LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto;
@@ -64,7 +65,7 @@ namespace LY.WMSCloud.Controllers
             var filename = ContentDispositionHeaderValue
                           .Parse(file.ContentDisposition)
                           .FileName
-                           .Trim('"');
+                          .Trim('"');
 
             filename = hostingEnv.WebRootPath + $@"\{ filename }";
             size += file.Length;
@@ -84,6 +85,43 @@ namespace LY.WMSCloud.Controllers
 
             // System.IO.File.Delete(filename);
             return new List<string>() { "OK" };
+        }
+
+        [HttpPost]
+        [AbpAuthorize(PermissionNames.Pages_MPNs)]
+        public async Task MPNImport(IFormFile file)
+        {
+            try
+            {
+                var ps = await GetI18NByDtoName("MPNDto");
+
+                long size = 0;
+
+                var filename = ContentDispositionHeaderValue
+                              .Parse(file.ContentDisposition)
+                              .FileName
+                              .Trim('"');
+
+                filename = hostingEnv.WebRootPath + $@"\{ filename }";
+                size += file.Length;
+                using (FileStream fs = System.IO.File.Create(filename))
+                {
+                    file.CopyTo(fs);
+                    fs.Flush();
+
+                    var res = await _fileHelperService.ExcleToListEntities<MPNDto>(ps, fs);
+
+                    foreach (var item in res)
+                    {
+                        await _repositoryMPN.InsertOrUpdateAsync(ObjectMapper.Map<MPN>(item));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new LYException(ex.Message);
+            }
+
         }
 
         [HttpPost]

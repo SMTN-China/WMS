@@ -2,6 +2,7 @@
 using Abp.Modules;
 using Abp.Reflection.Extensions;
 using LY.WMSCloud.Authorization;
+using LY.WMSCloud.CommonService;
 
 namespace LY.WMSCloud
 {
@@ -27,7 +28,13 @@ namespace LY.WMSCloud
             IocManager.Register(typeof(IDefaultServiceBase<,>), typeof(DefaultServiceBase<,,>), Abp.Dependency.DependencyLifeStyle.Transient);
             IocManager.Register(typeof(IDefaultServiceBase<>), typeof(DefaultServiceBase<,>), Abp.Dependency.DependencyLifeStyle.Transient);
 
-            IocManager.RegisterAssemblyByConvention(thisAssembly);
+            IocManager.RegisterAssemblyByConvention(thisAssembly); 
+
+            IocManager.Register<HttpHelp>(Abp.Dependency.DependencyLifeStyle.Singleton);
+
+            IocManager.Register<FileHelperService>(Abp.Dependency.DependencyLifeStyle.Singleton);
+
+            IocManager.Register<LightService>(Abp.Dependency.DependencyLifeStyle.Singleton);
 
             Configuration.Modules.AbpAutoMapper().Configurators.Add(
                 // Scan the assembly for classes which inherit from AutoMapper.Profile

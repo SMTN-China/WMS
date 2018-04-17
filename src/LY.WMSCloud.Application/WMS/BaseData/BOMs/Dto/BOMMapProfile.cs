@@ -17,6 +17,10 @@ namespace LY.WMSCloud.WMS.BaseData.BOMs.Dto
             CreateMap<BOM, ProductDto>();
 
             CreateMap<MPN, ProductDto>();
+
+            CreateMap<BOM, BOMDto>();
+
+            CreateMap<BOMDto, BOM>();
         }
     }
 }

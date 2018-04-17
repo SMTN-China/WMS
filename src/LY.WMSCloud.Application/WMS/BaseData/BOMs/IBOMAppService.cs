@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace LY.WMSCloud.WMS.BaseData.BOMs
 {
-    public interface IBOMAppService : IServiceBase<BOMDto, string>
+    public interface IBOMAppService : IServiceBase<ProductDto, string,BOMDto>
     {
         PagedResultDto<BOMDto> GetItemsById(string Id, PagedResultRequestInput input);
 
-        Task<ICollection<MPNDto>> GetProductByKeyName(string keyName);
-
-        Task<ICollection<MPNDto>> GetPartNoByKeyName(string keyName);
+        
     }
 }

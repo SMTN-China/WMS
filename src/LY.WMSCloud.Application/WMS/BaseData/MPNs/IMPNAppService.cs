@@ -9,10 +9,12 @@ namespace LY.WMSCloud.WMS.BaseData.MPNs
 {
     public interface IMPNAppService : IServiceBase<MPNDto, string>
     {
-        Task<ICollection<CustomerDto>> GetCustomerByKeyName(string keyName);
 
-        Task<ICollection<CustomerDto>> GetCustomerById(string id);
 
         Task<bool> BatchInsOrUpdate(ICollection<MPNDto> input);
+
+        Task<ICollection<MPNDto>> GetProductByKeyName(string keyName);
+
+        Task<ICollection<MPNDto>> GetPartNoByKeyName(string keyName);
     }
 }

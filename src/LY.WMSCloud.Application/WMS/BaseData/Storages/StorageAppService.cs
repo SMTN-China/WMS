@@ -1,4 +1,5 @@
-﻿using LY.WMSCloud.Entities.StorageData;
+﻿using LY.WMSCloud.Entities.BaseData;
+using LY.WMSCloud.Entities.StorageData;
 using LY.WMSCloud.WMS.BaseData.Storages.Dto;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,6 +21,18 @@ namespace LY.WMSCloud.WMS.BaseData.Storages
         public async Task<ICollection<StorageDto>> GetStorageByKeyName(string keyName)
         {
             var res = await _repository.GetAll().Where(c => c.Id.Contains(keyName)).Take(10).ToListAsync();
+
+            return ObjectMapper.Map<List<StorageDto>>(res);
+        }
+
+        public async Task<ICollection<StorageDto>> GetSStorageByKeyName(string keyName)
+        {
+            var res = await _repository.GetAll().Where(c => (c.IncomingMethod == IncomingMethod.ForSelf || c.IncomingMethod == IncomingMethod.Other) && c.Id.Contains(keyName)).Take(10).ToListAsync();
+            return ObjectMapper.Map<List<StorageDto>>(res);
+        }
+        public async Task<ICollection<StorageDto>> GetCStorageByKeyName(string keyName)
+        {
+            var res = await _repository.GetAll().Where(c => (c.IncomingMethod == IncomingMethod.ForCustomer || c.IncomingMethod == IncomingMethod.Other) && c.Id.Contains(keyName)).Take(10).ToListAsync();
 
             return ObjectMapper.Map<List<StorageDto>>(res);
         }

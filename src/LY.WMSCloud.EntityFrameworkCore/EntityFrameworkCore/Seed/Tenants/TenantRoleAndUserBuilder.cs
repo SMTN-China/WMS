@@ -9,6 +9,7 @@ using Abp.MultiTenancy;
 using LY.WMSCloud.Authorization;
 using LY.WMSCloud.Authorization.Roles;
 using LY.WMSCloud.Authorization.Users;
+using LY.WMSCloud.Entities;
 
 namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
 {
@@ -119,33 +120,33 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
             var adminMenuForHost = _context.Menus.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId);
             if (adminMenuForHost == null)
             {
-                adminMenuForHost = _context.Menus.Add(new Entities.Menu()
+                adminMenuForHost = _context.Menus.Add(new Menu()
                 {
-                    Name = "主菜单",
+                    Text = "主菜单",
                     Group = true,
-                    Translate = "主菜单",
+                    I18n = "主菜单",
                     TenantId = _tenantId,
                     Acl = PermissionNames.Pages_MainMenu,
                     IsActive = true,
                     CreatorUserId = adminUser.Id
                 }).Entity;
 
-                adminMenuForHost = _context.Menus.Add(new Entities.Menu()
+                adminMenuForHost = _context.Menus.Add(new Menu()
                 {
-                    Name = "系统维护",
-                    Translate = "系统维护",
+                    Text = "系统维护",
+                    I18n = "系统维护",
                     Icon = "icon-settings",
                     ParentId = adminMenuForHost.Id,
                     TenantId = _tenantId,
                     Acl = PermissionNames.Pages_Sys,
                     IsActive = true,
-                    CreatorUserId= adminUser.Id
+                    CreatorUserId = adminUser.Id
                 }).Entity;
 
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "用户管理",
-                    Translate = "用户管理",
+                    Text = "用户管理",
+                    I18n = "用户管理",
                     Acl = PermissionNames.Pages_Users,
                     TenantId = _tenantId,
                     Link = "/sys/user",
@@ -153,10 +154,10 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
                     IsActive = true,
                     CreatorUserId = adminUser.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "组织管理",
-                    Translate = "组织管理",
+                    Text = "组织管理",
+                    I18n = "组织管理",
                     Acl = PermissionNames.Pages_Orgs,
                     TenantId = _tenantId,
                     Link = "/sys/org",
@@ -164,10 +165,10 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
                     IsActive = true,
                     CreatorUserId = adminUser.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "菜单管理",
-                    Translate = "菜单管理",
+                    Text = "菜单管理",
+                    I18n = "菜单管理",
                     Acl = PermissionNames.Pages_Menus,
                     TenantId = _tenantId,
                     Link = "/sys/menu",
@@ -175,10 +176,10 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
                     IsActive = true,
                     CreatorUserId = adminUser.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "角色管理",
-                    Translate = "角色管理",
+                    Text = "角色管理",
+                    I18n = "角色管理",
                     Acl = PermissionNames.Pages_Orgs,
                     TenantId = _tenantId,
                     Link = "/sys/role",

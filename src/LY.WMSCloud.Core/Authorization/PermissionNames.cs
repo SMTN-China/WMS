@@ -5,6 +5,11 @@
         public const string Pages_MainMenu = "Pages.MainMenu";
 
         public const string Pages_Sys = "Pages.Sys";
+        public const string Pages_BaseData = "Pages.BaseData";
+        public const string Pages_ProduceData = "Pages.ProduceData";
+        public const string Pages_KanBan = "Pages.KanBan";
+        public const string Pages_Report = "Pages.Report";
+        public const string Pages_StoragesManage = "Pages.StoragesManage";
 
         public const string Pages_Tenants = "Pages.Tenants";
         public const string Pages_Tenants_Add = "Pages.Tenants.Create";
@@ -78,10 +83,10 @@
         public const string Pages_Storages_Update = "Pages.Storages.Update";
         public const string Pages_Storages_Delete = "Pages.Storages.Delete";
 
-        public const string Pages_BarCodeAnalysis = "Pages.BarCodeAnalysis";
-        public const string Pages_BarCodeAnalysis_Add = "Pages.BarCodeAnalysis.Create";
-        public const string Pages_BarCodeAnalysis_Update = "Pages.BarCodeAnalysis.Update";
-        public const string Pages_BarCodeAnalysis_Delete = "Pages.BarCodeAnalysis.Delete";
+        public const string Pages_BarCodeAnalysis = "Pages.BarCodeAnalysiss";
+        public const string Pages_BarCodeAnalysis_Add = "Pages.BarCodeAnalysiss.Create";
+        public const string Pages_BarCodeAnalysis_Update = "Pages.BarCodeAnalysiss.Update";
+        public const string Pages_BarCodeAnalysis_Delete = "Pages.BarCodeAnalysiss.Delete";
 
         public const string Pages_StorageArea = "Pages.StorageArea";
         public const string Pages_StorageArea_Add = "Pages.StorageArea.Create";

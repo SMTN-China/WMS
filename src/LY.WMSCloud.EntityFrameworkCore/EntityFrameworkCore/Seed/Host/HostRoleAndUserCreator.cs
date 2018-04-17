@@ -9,6 +9,7 @@ using LY.WMSCloud.Authorization.Roles;
 using LY.WMSCloud.Authorization.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using LY.WMSCloud.Entities;
 
 namespace LY.WMSCloud.EntityFrameworkCore.Seed.Host
 {
@@ -120,20 +121,20 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Host
             var adminMenuForHost = _context.Menus.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == null);
             if (adminMenuForHost == null)
             {
-                adminMenuForHost = _context.Menus.Add(new Entities.Menu()
+                adminMenuForHost = _context.Menus.Add(new Menu()
                 {
-                    Name = "主菜单",
+                    Text = "主菜单",
                     Group = true,
-                    Translate = "主菜单",
+                    I18n = "主菜单",
                     IsActive = true,
                     Acl = PermissionNames.Pages_MainMenu,
-                    CreatorUserId= adminUserForHost.Id
+                    CreatorUserId = adminUserForHost.Id
                 }).Entity;
 
-                adminMenuForHost = _context.Menus.Add(new Entities.Menu()
+                adminMenuForHost = _context.Menus.Add(new Menu()
                 {
-                    Name = "系统维护",
-                    Translate = "系统维护",
+                    Text = "系统维护",
+                    I18n = "系统维护",
                     Icon = "icon-settings",
                     ParentId = adminMenuForHost.Id,
                     Acl = PermissionNames.Pages_Sys,
@@ -141,50 +142,50 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Host
                     CreatorUserId = adminUserForHost.Id
                 }).Entity;
 
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "用户管理",
-                    Translate = "用户管理",
+                    Text = "用户管理",
+                    I18n = "用户管理",
                     Acl = PermissionNames.Pages_Users,
                     Link = "/sys/user",
                     ParentId = adminMenuForHost.Id,
                     IsActive = true,
                     CreatorUserId = adminUserForHost.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "组织管理",
-                    Translate = "组织管理",
+                    Text = "组织管理",
+                    I18n = "组织管理",
                     Acl = PermissionNames.Pages_Orgs,
                     Link = "/sys/org",
                     ParentId = adminMenuForHost.Id,
                     IsActive = true,
                     CreatorUserId = adminUserForHost.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "菜单管理",
-                    Translate = "菜单管理",
+                    Text = "菜单管理",
+                    I18n = "菜单管理",
                     Acl = PermissionNames.Pages_Menus,
                     Link = "/sys/menu",
                     ParentId = adminMenuForHost.Id,
                     IsActive = true,
                     CreatorUserId = adminUserForHost.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "角色管理",
-                    Translate = "角色管理",
+                    Text = "角色管理",
+                    I18n = "角色管理",
                     Acl = PermissionNames.Pages_Roles,
                     Link = "/sys/role",
                     ParentId = adminMenuForHost.Id,
                     IsActive = true,
                     CreatorUserId = adminUserForHost.Id
                 });
-                _context.Menus.Add(new Entities.Menu()
+                _context.Menus.Add(new Menu()
                 {
-                    Name = "租户管理",
-                    Translate = "租户管理",
+                    Text = "租户管理",
+                    I18n = "租户管理",
                     Acl = PermissionNames.Pages_Tenants,
                     Link = "/sys/tenant",
                     ParentId = adminMenuForHost.Id,

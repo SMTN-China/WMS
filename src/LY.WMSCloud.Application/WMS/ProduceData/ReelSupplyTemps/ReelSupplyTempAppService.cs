@@ -4,6 +4,7 @@ using LY.WMSCloud.CommonService;
 using LY.WMSCloud.Entities.BaseData;
 using LY.WMSCloud.Entities.ProduceData;
 using LY.WMSCloud.Entities.StorageData;
+using LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto;
 using LY.WMSCloud.WMS.ProduceData.ReelSupplyTemps.Dto;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -234,6 +235,19 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelSupplyTemps
             res.IsSuccess = true;
 
             return res;
+        }
+
+        public async Task<ICollection<string>> GetPartNoIdsByKeyName(string readyBill, string keyName)
+        {
+            var res = await _repositoryrbd.GetAll().Where(c => c.ReadyMBillId == readyBill && c.PartNoId.Contains(keyName)).Select(r => r.PartNoId).Take(10).ToListAsync();
+            return res;
+        }
+
+        public async Task<ICollection<ReadyMBillDto>> GetReadyMbillsByKeyName(string keyName)
+        {
+            var res = await _repositoryrb.GetAll().Where(c => c.Id.Contains(keyName)).Take(10).ToListAsync();
+
+            return ObjectMapper.Map<List<ReadyMBillDto>>(res);
         }
     }
 }

@@ -9,8 +9,7 @@ namespace LY.WMSCloud.WMS.BaseData.Lines
 {
     public interface ILineAppService : IServiceBase<LineDto,string>
     {
-        Task<ICollection<StorageDto>> GetCStorageByKeyName(string keyName);
-        Task<ICollection<StorageDto>> GetSStorageByKeyName(string keyName);
+       
 
         Task<ICollection<LineDto>> GetLineByKeyName(string keyName);
     }

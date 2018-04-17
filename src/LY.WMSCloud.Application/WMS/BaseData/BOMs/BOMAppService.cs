@@ -1,6 +1,8 @@
 ﻿using Abp.Application.Services.Dto;
+using Abp.Authorization;
 using Abp.Linq.Extensions;
 using AutoMapper;
+using LY.WMSCloud.Authorization;
 using LY.WMSCloud.Entities;
 using LY.WMSCloud.Entities.BaseData;
 using LY.WMSCloud.WMS.BaseData.BOMs.Dto;
@@ -15,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace LY.WMSCloud.WMS.BaseData.BOMs
 {
-    public class BOMAppService : ServiceBase<BOM, BOMDto, string>, IBOMAppService
+    public class BOMAppService : ServiceBase<BOM, ProductDto, string, BOMDto>, IBOMAppService
     {
         readonly IWMSRepositories<BOM, string> _repository;
         readonly IWMSRepositories<MPN, string> _repositoryMPN;
@@ -57,16 +59,27 @@ namespace LY.WMSCloud.WMS.BaseData.BOMs
             return new PagedResultDto<BOMDto>(tasksCount, res.ToList());
         }
 
-        public async Task<ICollection<MPNDto>> GetPartNoByKeyName(string keyName)
+        [HttpPost]
+        [AbpAuthorize(PermissionNames.Pages_BOMs)]
+        public async override Task<PagedResultDto<ProductDto>> GetAll(PagedResultRequestInput input)
         {
-            var res = await _repositoryMPN.GetAll().Where(c => c.Id.Contains(keyName)).Take(10).ToListAsync();
-            return ObjectMapper.Map<List<MPNDto>>(res);
-        }
+            // 查询 添加组件查询
+            // var query = _repositoryMPN.GetAll().Where(m => m.MPNHierarchy == MPNHierarchy.组件);
+            input.RequestWMSDtos.Add(new RequestWMSDto() { LinkOperation = LinkOperation.And, Operation = Operation.Equal, PropertyName = "MPNHierarchy", QueryValue = 0 });
 
-        public async Task<ICollection<MPNDto>> GetProductByKeyName(string keyName)
-        {
-            var res = await _repositoryMPN.GetAll().Where(c => c.MPNHierarchy == MPNHierarchy.Product && c.Id.Contains(keyName)).Take(10).ToListAsync();
-            return ObjectMapper.Map<List<MPNDto>>(res);
+            //获取总数
+            var query = _repositoryMPN.DynamicQuery(input);
+
+            var tasksCount = await query.CountAsync();
+
+            //默认的分页方式
+            //var taskList = query.Skip(input.SkipCount).Take(input.MaxResultCount).ToList();
+
+            //ABP提供了扩展方法PageBy分页方式
+            var taskList = query.PageBy(input).Include(b => b.Customer).ToList();
+
+           
+            return new PagedResultDto<ProductDto>(tasksCount, config.CreateMapper().Map<List<MPN>, List<ProductDto>>(taskList));
         }
     }
 }

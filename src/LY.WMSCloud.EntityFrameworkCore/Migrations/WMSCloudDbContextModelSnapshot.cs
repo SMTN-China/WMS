@@ -1438,7 +1438,8 @@ namespace LY.WMSCloud.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Acl");
+                    b.Property<string>("Acl")
+                        .HasMaxLength(30);
 
                     b.Property<DateTime>("CreationTime");
 
@@ -1455,8 +1456,11 @@ namespace LY.WMSCloud.Migrations
 
                     b.Property<bool>("Group");
 
-                    b.Property<string>("Icon")
+                    b.Property<string>("I18n")
                         .HasMaxLength(50);
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(30);
 
                     b.Property<int>("Index");
 
@@ -1471,9 +1475,6 @@ namespace LY.WMSCloud.Migrations
                     b.Property<string>("Link")
                         .HasMaxLength(255);
 
-                    b.Property<string>("Name")
-                        .HasMaxLength(30);
-
                     b.Property<int?>("ParentId");
 
                     b.Property<string>("Target")
@@ -1481,8 +1482,8 @@ namespace LY.WMSCloud.Migrations
 
                     b.Property<int?>("TenantId");
 
-                    b.Property<string>("Translate")
-                        .HasMaxLength(100);
+                    b.Property<string>("Text")
+                        .HasMaxLength(30);
 
                     b.HasKey("Id");
 

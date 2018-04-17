@@ -12,10 +12,10 @@ namespace LY.WMSCloud.Sys.Menus.Dto
     public class MenuDto : BaseDto<int>
     {
         [StringLength(20)]
-        public string Name { get; set; }
+        public string Text { get; set; }
 
         [StringLength(100)]
-        public string Translate { get; set; }
+        public string I18n { get; set; }
 
         public bool Group { get; set; }
 
@@ -36,7 +36,7 @@ namespace LY.WMSCloud.Sys.Menus.Dto
         public int? ParentId { get; set; }
 
         public string ParentName { get; set; }
-
+        public string Name { get; set; }
         public string Acl { get; set; }
 
         public ICollection<int> RoleIds { get; set; }
