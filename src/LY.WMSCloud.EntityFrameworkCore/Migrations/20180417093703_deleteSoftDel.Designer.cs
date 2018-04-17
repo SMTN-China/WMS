@@ -19,9 +19,10 @@ using System;
 namespace LY.WMSCloud.Migrations
 {
     [DbContext(typeof(WMSCloudDbContext))]
-    partial class WMSCloudDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180417093703_deleteSoftDel")]
+    partial class deleteSoftDel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

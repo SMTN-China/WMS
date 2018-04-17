@@ -56,44 +56,12 @@ namespace LY.WMSCloud.Controllers
 
         [HttpPost]
         [AbpAuthorize(PermissionNames.Pages_BOMs)]
-        public async Task<List<string>> BOMImport(IFormFile file)
-        {
-            var ps = await GetI18NByDtoName("BOMDto");
-
-            long size = 0;
-
-            var filename = ContentDispositionHeaderValue
-                          .Parse(file.ContentDisposition)
-                          .FileName
-                          .Trim('"');
-
-            filename = hostingEnv.WebRootPath + $@"\{ filename }";
-            size += file.Length;
-            using (FileStream fs = System.IO.File.Create(filename))
-            {
-                file.CopyTo(fs);
-                fs.Flush();
-
-                var res = await _fileHelperService.ExcleToListEntities<BOMDto>(ps, fs);
-
-                foreach (var item in res)
-                {
-
-                }
-            }
-
-
-            // System.IO.File.Delete(filename);
-            return new List<string>() { "OK" };
-        }
-
-        [HttpPost]
-        [AbpAuthorize(PermissionNames.Pages_MPNs)]
-        public async Task MPNImport(IFormFile file)
+        public async Task BOMImport(string productId, IFormFile file)
         {
             try
             {
-                var ps = await GetI18NByDtoName("MPNDto");
+                var datName = "BOMDto";
+                var ps = await GetI18NByDtoName(datName);
 
                 long size = 0;
 
@@ -109,13 +77,95 @@ namespace LY.WMSCloud.Controllers
                     file.CopyTo(fs);
                     fs.Flush();
 
-                    var res = await _fileHelperService.ExcleToListEntities<MPNDto>(ps, fs);
+                    var res = await _fileHelperService.ExcleToListEntities<BOMDto>(ps, datName, fs);
 
-                    foreach (var item in res)
+                    foreach (var bomDtos in res)
                     {
-                        await _repositoryMPN.InsertOrUpdateAsync(ObjectMapper.Map<MPN>(item));
+                        foreach (var bomDto in bomDtos)
+                        {
+                            bomDto.ProductId = productId;
+                            // 查询实体,
+                            var bom = _repository.FirstOrDefault(r => r.ProductId == bomDto.ProductId && r.PartNoId == bomDto.PartNoId);
+                            if (bom == null)
+                            {
+                                await _repository.InsertAsync(ObjectMapper.Map<BOM>(bomDto));
+                            }
+                            else
+                            {
+                                bom.Qty = bomDto.Qty;
+                                bom.Version = bomDto.Version;
+                                bom.MoreSendPercentage = bomDto.MoreSendPercentage;
+                                bom.AllowableMoreSend = bomDto.AllowableMoreSend;
+                            }
+                        }
+                    }
+
+                }
+                System.IO.File.Delete(filename);
+
+            }
+            catch (Exception ex)
+            {
+
+                throw new LYException(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [AbpAuthorize(PermissionNames.Pages_MPNs)]
+        public async Task MPNImport(IFormFile file)
+        {
+            try
+            {
+                var dtoName = "MPNDto";
+                var ps = await GetI18NByDtoName(dtoName);
+
+                long size = 0;
+
+                var filename = ContentDispositionHeaderValue
+                              .Parse(file.ContentDisposition)
+                              .FileName
+                              .Trim('"');
+
+                filename = hostingEnv.WebRootPath + $@"\{ filename }";
+                size += file.Length;
+                using (FileStream fs = System.IO.File.Create(filename))
+                {
+                    file.CopyTo(fs);
+                    fs.Flush();
+
+                    var res = await _fileHelperService.ExcleToListEntities<MPNDto>(ps, dtoName, fs);
+
+                    foreach (var mpnDtos in res)
+                    {
+                        foreach (var mpnDto in mpnDtos)
+                        {
+                            // 查询实体,
+                            var mpn = _repositoryMPN.FirstOrDefault(mpnDto.Id);
+                            if (mpn == null)
+                            {
+                                await _repositoryMPN.InsertAsync(ObjectMapper.Map<MPN>(mpnDto));
+                            }
+                            else
+                            {
+                                mpn.CustomerId = mpnDto.CustomerId;
+                                mpn.IncomingMethod = mpnDto.IncomingMethod;
+                                mpn.Info = mpnDto.Info;
+                                mpn.IsActive = mpnDto.IsActive;
+                                mpn.MPNHierarchy = mpnDto.MPNHierarchy;
+                                mpn.MPNLevel = mpnDto.MPNLevel;
+                                mpn.MPNType = mpn.MPNType;
+                                mpn.MPQs = mpnDto.MPQs;
+                                mpn.MSDLevel = mpnDto.MSDLevel;
+                                mpn.Name = mpnDto.Name;
+                                mpn.RegisterStorageId = mpnDto.RegisterStorageId;
+                                mpn.Remark = mpnDto.Remark;
+                                mpn.ShelfLife = mpnDto.ShelfLife;
+                            }
+                        }
                     }
                 }
+                System.IO.File.Delete(filename);
             }
             catch (Exception ex)
             {
@@ -128,7 +178,8 @@ namespace LY.WMSCloud.Controllers
         [AbpAuthorize(PermissionNames.Pages_ReadyMBills)]
         public async Task<List<ReadyMBillDetailedDto>> ReadyMBillDetailedImport(IFormFile file)
         {
-            var ps = await GetI18NByDtoName("ReadyMBillDetailedDto");
+            var dtoName = "ReadyMBillDetailedDto";
+            var ps = await GetI18NByDtoName(dtoName);
 
             long size = 0;
 
@@ -145,7 +196,7 @@ namespace LY.WMSCloud.Controllers
                 file.CopyTo(fs);
                 fs.Flush();
 
-                res = await _fileHelperService.ExcleToListEntities<ReadyMBillDetailedDto>(ps, fs);
+                res = await _fileHelperService.ExcleToListEntities<ReadyMBillDetailedDto>(ps, dtoName, fs);
             }
 
             return res.Where(s => s.Count > 0).FirstOrDefault();
@@ -571,7 +622,8 @@ namespace LY.WMSCloud.Controllers
         [AbpAuthorize(PermissionNames.Pages_StorageLocations)]
         public async Task StorageLocationsImport(IFormFile file)
         {
-            var ps = await GetI18NByDtoName("StorageLocationDto");
+            var dtoName = "StorageLocationDto";
+            var ps = await GetI18NByDtoName(dtoName);
 
             long size = 0;
 
@@ -587,7 +639,7 @@ namespace LY.WMSCloud.Controllers
                 file.CopyTo(fs);
                 fs.Flush();
 
-                var res = await _fileHelperService.ExcleToListEntities<StorageLocationDto>(ps, fs);
+                var res = await _fileHelperService.ExcleToListEntities<StorageLocationDto>(ps, dtoName, fs);
 
                 foreach (var item in res)
                 {
@@ -619,7 +671,7 @@ namespace LY.WMSCloud.Controllers
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<System.Reflection.PropertyInfo, ApplicationLanguageText>()
-                    .ForMember(m => m.Key, opt => opt.MapFrom(s => dtoName))
+                    .ForMember(m => m.Key, opt => opt.MapFrom(s => dtoName + s.Name))
                     .ForMember(m => m.Value, opt => opt.MapFrom(s =>
                         dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name) == null ? s.Name : dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name).Value));
             }

@@ -28,7 +28,7 @@ namespace LY.WMSCloud
 
     }
 
-    public class EntitieBase<TPrimaryKey> : FullAuditedEntity<TPrimaryKey>, IExtendableObject, IPassivable
+    public class EntitieBase<TPrimaryKey> : AuditedEntity<TPrimaryKey>, IExtendableObject, IPassivable
     {
         public EntitieBase()
         {

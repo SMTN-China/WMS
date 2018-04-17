@@ -38,5 +38,7 @@ namespace LY.WMSCloud.WMS.BaseData.BOMs.Dto
         /// 超发百分比
         /// </summary>
         public double MoreSendPercentage { get; set; }
+        [StringLength(10)]
+        public string Version { get; set; }
     }
 }

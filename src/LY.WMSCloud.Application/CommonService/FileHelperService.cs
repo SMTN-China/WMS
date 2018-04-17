@@ -15,7 +15,7 @@ namespace LY.WMSCloud.CommonService
     public class FileHelperService
     {
 
-        public async Task<List<List<T>>> ExcleToListEntities<T>(List<ApplicationLanguageText> i18ns, FileStream fileStream) where T : class, new()
+        public async Task<List<List<T>>> ExcleToListEntities<T>(List<ApplicationLanguageText> i18ns, string dtoName, FileStream fileStream) where T : class, new()
         {
             List<List<T>> res = new List<List<T>>();
             // 查询 T 的 I18N 列名
@@ -36,7 +36,7 @@ namespace LY.WMSCloud.CommonService
                             {
                                 var columnName = sheet.Cells[sheet.Dimension.Start.Row, j].Value.ToString();
                                 // 查询是否包含此列
-                                var columnInfo = i18ns.Where(i => i.Key == columnName).FirstOrDefault();
+                                var columnInfo = i18ns.Where(i => i.Value.ToLower() == columnName.ToLower()).FirstOrDefault();
                                 if (columnInfo != null)
                                 {
                                     columnInfos.Add(j, columnInfo);
@@ -60,7 +60,7 @@ namespace LY.WMSCloud.CommonService
                                         var cellValue = sheet.Cells[m, j].Value;
                                         Type objType = rowT.GetType();
                                         PropertyInfo info = null;
-                                        info = objType.GetProperty(columnInfo.Value.Key);
+                                        info = objType.GetProperty(columnInfo.Value.Key.Replace(dtoName, ""));
                                         //判断对象是否有该属性
                                         if (info != null)
                                         {
