@@ -58,10 +58,10 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelSupplyTemps
 
             await _repository.DeleteAsync(r => true);
 
-            var la = await _repositorySL.GetAllListAsync(s => s.BrightState != BrightState.Off);
+            var la = await _repositorySL.GetAllListAsync(s => s.LightState != LightState.Off);
             foreach (var sl in la)
             {
-                sl.BrightState = BrightState.Off;
+                sl.LightState = LightState.Off;
                 // await _repositorySL.UpdateAsync(sl);
             }
             CurrentUnitOfWork.SaveChanges();
@@ -188,7 +188,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelSupplyTemps
 
                         // 标记亮灯,真正的亮灯操作。移到专门的亮灯客户端
                         var sl = _repositorySL.Get(reel.StorageLocationId);
-                        sl.BrightState =BrightState.On;
+                        sl.LightState = LightState.On;
                         _repositorySL.Update(sl);
 
 
@@ -219,15 +219,15 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelSupplyTemps
             CurrentUnitOfWork.SaveChanges();
 
             // 亮灯
-            var lights = _repositorySL.GetAllList(s => s.BrightState==BrightState.On);
+            var lights = _repositorySL.GetAllList(s => s.LightState == LightState.On);
 
             //小灯
-            var simlights = lights.Select(l => new StorageLight() { ContinuedTime = 10, lightOrder = 1, MainBoardId = l.MainBoardId, RackPositionId = l.PositionId }).ToList();
+            var simlights = lights.Select(l => new StorageLight() { ContinuedTime = 10, LightOrder = 1, MainBoardId = l.MainBoardId, RackPositionId = l.PositionId }).ToList();
 
             LightService.LightOrder(simlights);
 
             // 灯塔
-            var houselights = simlights.Select(l => new HouseLight() { HouseLightSide = 1, lightOrder = 1, MainBoardId = l.MainBoardId }).Distinct().ToList();
+            var houselights = simlights.Select(l => new HouseLight() { HouseLightSide = 1, LightOrder = 1, MainBoardId = l.MainBoardId }).Distinct().ToList();
             // await _notificationService.SendNotification("HouseOrder", houselights);
             LightService.HouseOrder(houselights);
 

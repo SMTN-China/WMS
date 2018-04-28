@@ -29,6 +29,8 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto
         public bool IsCut { get; set; }
         public string BOMId { get; set; }
 
+        public string SlotId { get; set; }
+
         public string Suppliers { get; set; }
 
         /// <summary>

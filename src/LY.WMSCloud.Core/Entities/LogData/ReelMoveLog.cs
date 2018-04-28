@@ -72,6 +72,11 @@ namespace LY.WMSCloud.Entities.ProduceData
         public string SlotId { get; set; }
         public Slot Slot { get; set; }
 
+        /// <summary>
+        /// BOMId
+        /// </summary>
+        public string BOMId { get; set; }
+        public BOM BOM { get; set; }
 
         /// <summary>
         /// 收料单号

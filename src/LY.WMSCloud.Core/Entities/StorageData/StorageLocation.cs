@@ -64,36 +64,33 @@ namespace LY.WMSCloud.Entities.StorageData
         /// <summary>
         /// 灯状态
         /// </summary>
-        public BrightState BrightState { get; set; }
+        public LightState LightState { get; set; }
 
         /// <summary>
         /// 灯颜色
         /// </summary>
-        public BrightColor BrightColor { get; set; }
+        public LightColor LightColor { get; set; }
     }
 
-    public enum BrightColor
+    public enum LightColor
     {
-        /// <summary>
-        /// 白
-        /// </summary>
-        White = 0,
+        Default = 0,
         /// <summary>
         /// 绿
         /// </summary>
         Green,
         /// <summary>
-        /// 蓝
-        /// </summary>
-        Blue,
-        /// <summary>
         /// 红
         /// </summary>
         Red,
         /// <summary>
-        /// 橙
+        /// 蓝
         /// </summary>
-        Orange,
+        Blue,
+        /// <summary>
+        /// 白
+        /// </summary>
+        White,
         /// <summary>
         /// 黄
         /// </summary>
@@ -101,10 +98,15 @@ namespace LY.WMSCloud.Entities.StorageData
         /// <summary>
         /// 紫
         /// </summary>
-        Purple
+        Violet,
+        /// <summary>
+        /// 青
+        /// </summary>
+        Cyan
     }
 
-    public enum BrightState
+
+    public enum LightState
     {
         /// <summary>
         /// 关闭

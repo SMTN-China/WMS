@@ -61,11 +61,11 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations.Dto
         /// <summary>
         /// 灯状态
         /// </summary>
-        public BrightState BrightState { get; set; }
+        public LightState LightState { get; set; }
 
         /// <summary>
         /// 灯颜色
         /// </summary>
-        public BrightColor BrightColor { get; set; }
+        public LightColor LightColor { get; set; }
     }
 }

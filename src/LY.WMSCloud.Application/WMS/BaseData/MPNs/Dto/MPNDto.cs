@@ -13,7 +13,7 @@ namespace LY.WMSCloud.WMS.BaseData.MPNs.Dto
         /// <summary>
         /// 名称
         /// </summary>
-        [StringLength(30)]
+        [StringLength(500)]
         public string Name { get; set; }
 
         /// <summary>
@@ -21,7 +21,8 @@ namespace LY.WMSCloud.WMS.BaseData.MPNs.Dto
         /// </summary>
         [StringLength(500)]
         public string Info { get; set; }
-
+        [StringLength(200)]
+        public string Supplier { get; set; }
         /// <summary>
         /// 备注
         /// </summary>

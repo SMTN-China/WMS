@@ -65,8 +65,24 @@ namespace LY.WMSCloud.Sys.Menus
                 .OrderBy(m => m.Index)
                 .Where(m => m.Group)
                 .ToListAsync();
+            menus = OrderByIndex(menus);
 
             return ObjectMapper.Map<List<MenuCDto>>(menus);
+        }
+
+        List<Menu> OrderByIndex(List<Menu> menus)
+        {
+            menus = menus.OrderBy(m => m.Index).ToList();
+
+            foreach (var itemMenus in menus)
+            {
+                if (itemMenus.Children != null && itemMenus.Children.Count > 0)
+                {
+                    itemMenus.Children = OrderByIndex(itemMenus.Children.ToList());
+                }
+            }
+
+            return menus.ToList();
         }
     }
 }

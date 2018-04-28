@@ -14,7 +14,7 @@ namespace LY.WMSCloud.Entities.BaseData
         /// <summary>
         /// 名称
         /// </summary>
-        [StringLength(30)]
+        [StringLength(500)]
         public string Name { get; set; }
 
         /// <summary>
@@ -28,7 +28,8 @@ namespace LY.WMSCloud.Entities.BaseData
         /// </summary>
         [StringLength(500)]
         public string Remark { get; set; }
-
+        [StringLength(200)]
+        public string Supplier { get; set; }
         /// <summary>
         /// 层级
         /// </summary>

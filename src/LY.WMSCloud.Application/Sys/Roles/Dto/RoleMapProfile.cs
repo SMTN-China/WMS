@@ -17,6 +17,10 @@ namespace LY.WMSCloud.Roles.Dto
             CreateMap<CreateRoleDto, Role>().ForMember(x => x.Permissions, opt => opt.Ignore());
             CreateMap<RoleDto, Role>().ForMember(x => x.Permissions, opt => opt.Ignore());
 
+            CreateMap<Permission, PermissionDto>();
+            CreateMap<PermissionDto, Permission>();
+
+
             CreateMap<Role, RoleDto>().ForMember(x => x.OrgName, opt => opt.MapFrom(x => GetOrgName(x.OrgId)));
         }
 

@@ -54,21 +54,36 @@ namespace LY.WMSCloud.Web.Host.Startup
 #endif
 
             // Configure CORS for angular2 UI
-            services.AddCors(
-                options => options.AddPolicy(
-                    _defaultCorsPolicyName,
-                    builder => builder
-                        .WithOrigins(
-                            // App:CorsOrigins in appsettings.json can contain more than one address separated by comma.
-                            _appConfiguration["App:CorsOrigins"]
-                                .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                                .Select(o => o.RemovePostFix("/"))
-                                .ToArray()
-                        )
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                )
-            );
+            //services.AddCors(
+            //    options => options.AddPolicy(
+            //        _defaultCorsPolicyName,
+            //        builder => builder
+            //    //.AllowAnyOrigin()
+            //    //.AllowAnyMethod()
+            //    //.AllowAnyHeader()
+            //    //.AllowCredentials()
+            //    .WithOrigins(
+            //        // App:CorsOrigins in appsettings.json can contain more than one address separated by comma.
+            //        _appConfiguration["App:CorsOrigins"]
+            //            .Split(",", StringSplitOptions.RemoveEmptyEntries)
+            //            .Select(o => o.RemovePostFix("/"))
+            //            .ToArray()
+            //    )
+            //    .AllowAnyHeader()
+            //    .AllowAnyMethod()
+            //    )
+            //);
+            //// Configure CORS for angular2 UI
+            services.AddCors(options =>
+            {
+                options.AddPolicy(_defaultCorsPolicyName, builder =>
+                {
+                    builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials();
+                });
+            });
 
             // Swagger - Enable this line and the related lines in Configure method to enable swagger UI
             services.AddSwaggerGen(options =>

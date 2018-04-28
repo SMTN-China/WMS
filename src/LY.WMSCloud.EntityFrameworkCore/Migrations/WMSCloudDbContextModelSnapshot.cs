@@ -1208,7 +1208,7 @@ namespace LY.WMSCloud.Migrations
                     b.Property<int>("MSDLevel");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(30);
+                        .HasMaxLength(500);
 
                     b.Property<string>("RegisterStorageId")
                         .HasMaxLength(36);
@@ -1217,6 +1217,9 @@ namespace LY.WMSCloud.Migrations
                         .HasMaxLength(500);
 
                     b.Property<double>("ShelfLife");
+
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(200);
 
                     b.Property<int>("TenantId");
 
@@ -1406,7 +1409,7 @@ namespace LY.WMSCloud.Migrations
                     b.Property<string>("ExtensionData");
 
                     b.Property<string>("ExternalLink")
-                        .HasMaxLength(255);
+                        .HasMaxLength(500);
 
                     b.Property<bool>("Group");
 
@@ -1425,7 +1428,7 @@ namespace LY.WMSCloud.Migrations
                     b.Property<long?>("LastModifierUserId");
 
                     b.Property<string>("Link")
-                        .HasMaxLength(255);
+                        .HasMaxLength(500);
 
                     b.Property<int?>("ParentId");
 
@@ -1482,6 +1485,72 @@ namespace LY.WMSCloud.Migrations
                     b.HasIndex("ParentId");
 
                     b.ToTable("SysOrg");
+                });
+
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.PrintReel", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30);
+
+                    b.Property<string>("BatchCode")
+                        .HasMaxLength(30);
+
+                    b.Property<DateTime>("CreationTime");
+
+                    b.Property<long?>("CreatorUserId");
+
+                    b.Property<string>("DateCode")
+                        .HasMaxLength(15);
+
+                    b.Property<string>("ExtensionData");
+
+                    b.Property<string>("IQCCheckId")
+                        .HasMaxLength(30);
+
+                    b.Property<string>("Info")
+                        .HasMaxLength(500);
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<DateTime?>("LastModificationTime");
+
+                    b.Property<long?>("LastModifierUserId");
+
+                    b.Property<string>("LotCode")
+                        .HasMaxLength(50);
+
+                    b.Property<DateTime>("MakeDate");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(500);
+
+                    b.Property<string>("PartNoId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("PoId")
+                        .HasMaxLength(30);
+
+                    b.Property<int>("PrintIndex");
+
+                    b.Property<string>("PrintStr")
+                        .HasMaxLength(36);
+
+                    b.Property<int>("Qty");
+
+                    b.Property<string>("ReceivedReelBillId")
+                        .HasMaxLength(36);
+
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(30);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartNoId");
+
+                    b.HasIndex("ReceivedReelBillId");
+
+                    b.ToTable("WMSPrintReel");
                 });
 
             modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBill", b =>
@@ -1593,6 +1662,9 @@ namespace LY.WMSCloud.Migrations
 
                     b.Property<int>("SendQty");
 
+                    b.Property<string>("SlotId")
+                        .HasMaxLength(36);
+
                     b.Property<string>("Suppliers")
                         .HasMaxLength(50);
 
@@ -1607,6 +1679,8 @@ namespace LY.WMSCloud.Migrations
                     b.HasIndex("ReadyMBillId");
 
                     b.HasIndex("ReelMoveMethodId");
+
+                    b.HasIndex("SlotId");
 
                     b.ToTable("WMSReadyMBillDetailed");
                 });
@@ -1792,6 +1866,8 @@ namespace LY.WMSCloud.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(36);
 
+                    b.Property<string>("BOMId");
+
                     b.Property<DateTime>("CreationTime");
 
                     b.Property<long?>("CreatorUserId");
@@ -1835,6 +1911,8 @@ namespace LY.WMSCloud.Migrations
                         .HasMaxLength(36);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BOMId");
 
                     b.HasIndex("PartNoId");
 
@@ -2396,10 +2474,6 @@ namespace LY.WMSCloud.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(30);
 
-                    b.Property<int>("BrightColor");
-
-                    b.Property<int>("BrightState");
-
                     b.Property<string>("Code")
                         .HasMaxLength(30);
 
@@ -2414,6 +2488,10 @@ namespace LY.WMSCloud.Migrations
                     b.Property<DateTime?>("LastModificationTime");
 
                     b.Property<long?>("LastModifierUserId");
+
+                    b.Property<int>("LightColor");
+
+                    b.Property<int>("LightState");
 
                     b.Property<int>("MainBoardId");
 
@@ -2782,6 +2860,17 @@ namespace LY.WMSCloud.Migrations
                         .HasForeignKey("ParentId");
                 });
 
+            modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.PrintReel", b =>
+                {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
+                        .WithMany()
+                        .HasForeignKey("PartNoId");
+
+                    b.HasOne("LY.WMSCloud.Entities.ProduceData.ReceivedReelBill", "ReceivedReelBill")
+                        .WithMany()
+                        .HasForeignKey("ReceivedReelBillId");
+                });
+
             modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBill", b =>
                 {
                     b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReReadyMBill")
@@ -2804,12 +2893,16 @@ namespace LY.WMSCloud.Migrations
                         .HasForeignKey("PartNoId");
 
                     b.HasOne("LY.WMSCloud.Entities.ProduceData.ReadyMBill", "ReadyMBill")
-                        .WithMany()
+                        .WithMany("ReadyMBillDetailed")
                         .HasForeignKey("ReadyMBillId");
 
                     b.HasOne("LY.WMSCloud.Entities.ProduceData.ReelMoveMethod", "ReelMoveMethod")
                         .WithMany()
                         .HasForeignKey("ReelMoveMethodId");
+
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.Slot", "Slot")
+                        .WithMany()
+                        .HasForeignKey("SlotId");
                 });
 
             modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReadyMBillWorkBillMap", b =>
@@ -2867,6 +2960,10 @@ namespace LY.WMSCloud.Migrations
 
             modelBuilder.Entity("LY.WMSCloud.Entities.ProduceData.ReelMoveLog", b =>
                 {
+                    b.HasOne("LY.WMSCloud.Entities.BaseData.BOM", "BOM")
+                        .WithMany()
+                        .HasForeignKey("BOMId");
+
                     b.HasOne("LY.WMSCloud.Entities.BaseData.MPN", "PartNo")
                         .WithMany()
                         .HasForeignKey("PartNoId");

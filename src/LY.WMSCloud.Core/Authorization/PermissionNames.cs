@@ -132,5 +132,12 @@
         public const string Pages_UPHs_Add = "Pages.UPHs.Create";
         public const string Pages_UPHs_Update = "Pages.UPHs.Update";
         public const string Pages_UPHs_Delete = "Pages.UPHs.Delete";
+
+        public const string Pages_PrintReels = "Pages.PrintReels";
+        public const string Pages_PrintReels_Add = "Pages.PrintReels.Create";
+        public const string Pages_PrintReels_Update = "Pages.PrintReels.Update";
+        public const string Pages_PrintReels_Delete = "Pages.PrintReels.Delete";
+
+        
     }
 }

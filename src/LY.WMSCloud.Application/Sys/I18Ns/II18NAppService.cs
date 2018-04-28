@@ -9,6 +9,6 @@ namespace LY.WMSCloud.Sys.I18Ns
 {
     public interface II18NAppService : IServiceBase<I18NDto, long>
     {
-       Task< ICollection<I18NDto>> GetByKeyName(string keyName);
+        Task<ICollection<I18NDto>> GetByDtoName(string dtoName);
     }
 }

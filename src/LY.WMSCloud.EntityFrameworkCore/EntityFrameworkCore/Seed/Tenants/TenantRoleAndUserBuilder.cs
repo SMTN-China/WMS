@@ -46,14 +46,14 @@ namespace LY.WMSCloud.EntityFrameworkCore.Seed.Tenants
             }
 
 
-          
+
 
             // Admin role
 
             var adminRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Admin);
             if (adminRole == null)
             {
-                adminRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Admin, StaticRoleNames.Tenants.Admin) { IsStatic = true }).Entity;
+                adminRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Admin, StaticRoleNames.Tenants.Admin) { IsStatic = true, OrgId = adminOrgForHost.Id }).Entity;
                 _context.SaveChanges();
             }
 

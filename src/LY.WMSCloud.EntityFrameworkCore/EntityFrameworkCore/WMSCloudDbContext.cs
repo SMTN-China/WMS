@@ -55,6 +55,8 @@ namespace LY.WMSCloud.EntityFrameworkCore
 
         public virtual DbSet<RMMStorageMap> RMMStorageMaps { set; get; }
 
+        public virtual DbSet<PrintReel> PrintReels { set; get; }
+
 
         public WMSCloudDbContext(DbContextOptions<WMSCloudDbContext> options)
             : base(options)
@@ -80,6 +82,8 @@ namespace LY.WMSCloud.EntityFrameworkCore
             modelBuilder.Entity<ReelSupplyTemp>(b => b.ToTable("WMSReelSupplyTemp").Property(t => t.Id).HasMaxLength(60));
             modelBuilder.Entity<ReadySlot>(b => b.ToTable("WMSReadySlot").Property(t => t.Id).HasMaxLength(36));
             modelBuilder.Entity<StorageArea>(b => b.ToTable("WMSStorageArea").Property(t => t.Id).HasMaxLength(30));
+            modelBuilder.Entity<PrintReel>(b => b.ToTable("WMSPrintReel").Property(t => t.Id).HasMaxLength(30));
+
 
             modelBuilder.Entity<ReelMoveLog>(b => b.ToTable("WMSReelMoveMethodLog").Property(t => t.Id).HasMaxLength(36));
             modelBuilder.Entity<ReelMoveMethod>(b => b.ToTable("WMSReelMoveMethod").Property(t => t.Id).HasMaxLength(30));

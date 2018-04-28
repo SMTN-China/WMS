@@ -1,4 +1,5 @@
-﻿using LY.WMSCloud.Base;
+﻿using Abp.Configuration;
+using LY.WMSCloud.Base;
 using LY.WMSCloud.CommonService;
 using LY.WMSCloud.Entities.StorageData;
 using LY.WMSCloud.WMS.BaseData.StorageLocations.Dto;
@@ -17,16 +18,20 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
         readonly IWMSRepositories<Storage, string> _repositoryS;
         readonly LightService LightService;
         readonly IWMSRepositories<StorageLocation, string> _repository;
+        readonly IWMSRepositories<Setting, long> _repositoryST;
+
         public StorageLocationAppService(
             IWMSRepositories<StorageLocation, string> repository,
             IWMSRepositories<StorageLocationType, string> repositoryT,
             IWMSRepositories<Storage, string> repositoryS,
+            IWMSRepositories<Setting, long> repositoryST,
             LightService lightService) : base(repository)
         {
             _repositoryT = repositoryT;
             _repository = repository;
             _repositoryS = repositoryS;
             LightService = lightService;
+            _repositoryST = repositoryST;
         }
 
         public async Task AddByLY(LYDto lYDto)
@@ -67,46 +72,203 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
 
         public async Task AllBright()
         {
-            var lights = await _repository.GetAll().GroupBy(r => r.MainBoardId).Select(r => new AllLight { lightOrder = 1, MainBoardId = r.Key }).Distinct().ToListAsync();
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
+            var lights = await _repository.GetAll().GroupBy(r => r.MainBoardId).Select(r => new AllLight
+            {
+                LightOrder = 1,
+                LightColor = lightColor,
+                MainBoardId = r.Key
+            }).Distinct().ToListAsync();
 
             // 小灯,灯塔
             LightService.AllLightOrder(lights);
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 1,
+                MainBoardId = r.MainBoardId,
+                LightColor = lightColor,
+                HouseLightSide = 0
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 1,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1
+            }).ToList());
         }
 
         public async Task AllExtinguished()
         {
-            var lights = await _repository.GetAll().GroupBy(r => r.MainBoardId).Select(r => new AllLight { lightOrder = 0, MainBoardId = r.Key }).Distinct().ToListAsync();
+            // 查询所有空库位
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                var lights = await _repository.GetAll().GroupBy(r => r.MainBoardId).Select(r => new AllLight
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.Key,
+                    LightColor = LightColor.Green
+                }).Distinct().ToListAsync();
 
-            // 小灯
-            LightService.AllLightOrder(lights);
+                // 小灯
+                LightService.AllLightOrder(lights);
+
+                foreach (var light in lights)
+                {
+                    light.LightColor = LightColor.Red;
+                }
+                LightService.AllLightOrder(lights);
+
+                foreach (var light in lights)
+                {
+                    light.LightColor = LightColor.Blue;
+                }
+                LightService.AllLightOrder(lights);
+
+                // 灯塔
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Green,
+                    HouseLightSide = 0
+                }).ToList());
+
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Green,
+                    HouseLightSide = 1
+                }).ToList());
+
+                // 灯塔
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Red,
+                    HouseLightSide = 0
+                }).ToList());
+
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Red,
+                    HouseLightSide = 1
+                }).ToList());
+
+                // 灯塔
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Blue,
+                    HouseLightSide = 0
+                }).ToList());
+
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = LightColor.Blue,
+                    HouseLightSide = 1
+                }).ToList());
+            } //三色灯
+            else
+            {
+                var lights = await _repository.GetAll().GroupBy(r => r.MainBoardId).Select(r => new AllLight
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.Key,
+                    LightColor = lightColor
+                }).Distinct().ToListAsync();
+
+                // 小灯
+                LightService.AllLightOrder(lights);
 
 
-            // 灯塔
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+                // 灯塔
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = lightColor,
+                    HouseLightSide = 0
+                }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+                LightService.HouseOrder(lights.Select(r => new HouseLight()
+                {
+                    LightOrder = 0,
+                    MainBoardId = r.MainBoardId,
+                    LightColor = lightColor,
+                    HouseLightSide = 1
+                }).ToList());
+            } // 单色灯
+
+
         }
 
         public async Task NonReelBright()
         {
             // 查询所有空库位
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
 
-            var lights = await _repository.GetAll().Where(r => r.ReelId == null).Select(r => new StorageLight { lightOrder = 1, MainBoardId = r.MainBoardId, ContinuedTime = 10, RackPositionId = r.PositionId }).Distinct().ToListAsync();
+
+            var lights = await _repository.GetAll().Where(r => r.ReelId == null).Select(r => new StorageLight
+            {
+                LightOrder = 1,
+                MainBoardId = r.MainBoardId,
+                ContinuedTime = 10,
+                LightColor = lightColor,
+                RackPositionId = r.PositionId
+            }).Distinct().ToListAsync();
 
             // 小灯
             LightService.LightOrder(lights);
 
 
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight { lightOrder = 0, MainBoardId = r.MainBoardId }).Select(r => r.Key).ToList();
+            var mains = lights.GroupBy(r => new AllLight
+            {
+                LightOrder = 0,
+                MainBoardId = r.MainBoardId,
+                LightColor = lightColor
+            }).Select(r => r.Key).ToList();
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 0,
+                LightColor = lightColor
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1,
+                LightColor = lightColor
+            }).ToList());
         }
 
         public async Task<bool> GetIsHave(string id)

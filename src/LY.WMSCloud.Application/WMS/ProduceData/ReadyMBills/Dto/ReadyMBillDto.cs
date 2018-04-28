@@ -74,5 +74,12 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto
         /// </summary>
         [StringLength(50)]
         public string Linestr { get; set; }
+
+
+        public ICollection<ReadyMBillWorkBillMapDto> WorkBills { get; set; }
+
+        public ICollection<ReadyMBillDetailedDto> ReadyMBillDetailed { get; set; }
+
+
     }
 }

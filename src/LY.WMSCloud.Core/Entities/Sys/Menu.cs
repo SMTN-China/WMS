@@ -17,10 +17,10 @@ namespace LY.WMSCloud.Entities
 
         public bool Group { get; set; }
 
-        [StringLength(255)]
+        [StringLength(500)]
         public string Link { get; set; }
 
-        [StringLength(255)]
+        [StringLength(500)]
         public string ExternalLink { get; set; }
 
         [StringLength(10)]

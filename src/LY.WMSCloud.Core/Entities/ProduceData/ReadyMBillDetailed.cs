@@ -59,7 +59,13 @@ namespace LY.WMSCloud.Entities.ProduceData
 
         public string BOMId { get; set; }
         public BOM BOM { get; set; }
+        /// <summary>
+        /// BOM编号,用BOM生成时会记录
+        /// </summary>
+        [StringLength(36)]
 
+        public string SlotId { get; set; }
+        public Slot Slot { get; set; }
 
         /// <summary>
         /// 指定供应商，支持正则

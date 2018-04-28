@@ -21,6 +21,8 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         public ICollection<ReadyMBillWorkBillMap> WorkBills { get; set; }
 
+        public ICollection<ReadyMBillDetailed> ReadyMBillDetailed { get; set; }
+
         /// <summary>
         /// 记账单号
         /// </summary>

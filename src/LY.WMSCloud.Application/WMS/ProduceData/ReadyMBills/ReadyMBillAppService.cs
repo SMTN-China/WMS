@@ -17,9 +17,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 {
     public class ReadyMBillAppService : ServiceBase<ReadyMBill, ReadyMBillDto, string>, IReadyMBillAppService
     {
-        public ReadyMBillAppService(IWMSRepositories<ReadyMBill, string> repository) : base(repository)
-        {
-        }
 
         readonly IWMSRepositories<ReadyMBill, string> _repositoryReadyMBill;
         readonly IWMSRepositories<ReadyMBillDetailed, string> _repositoryReadyMBilld;
@@ -38,7 +35,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
         readonly IWMSRepositories<Setting, long> _repositoryT;
         readonly IWMSRepositories<ReelSendTemp, string> _repositoryRST;
         readonly IWMSRepositories<ReelShortTemp, string> _repositoryRSHT;
-
+        readonly IWMSRepositories<BOM, string> _repositoryBOM;
 
         public ReadyMBillAppService(
             IWMSRepositories<ReadyMBill, string> repositoryReadyMBill,
@@ -53,6 +50,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             IWMSRepositories<StorageLocation, string> repositorySL,
             IWMSRepositories<MPN, string> repositoryMPN,
             IWMSRepositories<Line, string> repositoryLine,
+            IWMSRepositories<BOM, string> repositoryBOM,
             IWMSRepositories<ReelMoveLog, string> reelMoveLog,
              LightService lightService,
             IWMSRepositories<ReadySlot, string> repositoryReadySlot,
@@ -76,10 +74,72 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             _reelMoveLog = reelMoveLog;
             LightService = lightService;
             _repositoryReadySlot = repositoryReadySlot;
+            _repositoryBOM = repositoryBOM;
         }
 
-        public override Task<ReadyMBillDto> Update(ReadyMBillDto input)
+        public async override Task<ReadyMBillDto> Create(ReadyMBillDto input)
         {
+            input.Productstr = string.Join('|', input.WorkBills.Select(r => r.ProductId).Distinct().ToList());
+            input.WorkBilQtys = string.Join('|', input.WorkBills.Select(r => r.Id + ":" + r.Qty).Distinct().ToList());
+            input.Linestr = string.Join('|', input.WorkBills.Select(r => r.LineId).Distinct().ToList());
+
+            switch (input.MakeDetailsType)
+            {
+                case MakeDetailsType.BOM:
+                    // 按BOM生成备料明细
+                    input.ReadyMBillDetailed.Clear();
+                    foreach (var wo in input.WorkBills)
+                    {
+                        var boms = await _repositoryBOM.GetAll().Where(r => r.ProductId == wo.ProductId).ToListAsync();
+                        foreach (var bom in boms)
+                        {
+                            input.ReadyMBillDetailed.Add(new ReadyMBillDetailedDto()
+                            {
+                                BOMId = bom.Id,
+                                ReelMoveMethodId = input.ReelMoveMethodId,
+                                IsActive = true,
+                                PartNoId = bom.PartNoId,
+                                Qty = bom.Qty * wo.Qty,
+                                TenantId = AbpSession.TenantId,
+                            });
+                        }
+                    }
+                    break;
+                case MakeDetailsType.Slot:
+                    // 按料站表生成备料明细
+                    input.ReadyMBillDetailed.Clear();
+                    foreach (var wo in input.WorkBills)
+                    {
+                        var slots = await _repositorySlot.GetAll().Where(r => r.ProductId == wo.ProductId).ToListAsync();
+                        foreach (var slot in slots)
+                        {
+                            input.ReadyMBillDetailed.Add(new ReadyMBillDetailedDto()
+                            {
+                                SlotId = slot.Id,
+                                ReelMoveMethodId = input.ReelMoveMethodId,
+                                IsActive = true,
+                                PartNoId = slot.PartNoId,
+                                Qty = slot.Qty * wo.Qty,
+                                TenantId = AbpSession.TenantId,
+                            });
+                        }
+                    }
+                    break;
+                case MakeDetailsType.Detailed:
+                    // 直接传入备料明细灯,不做任何操作
+                    break;
+                default:
+                    break;
+            }
+            var res = await base.Create(input);
+            return res;
+        }
+
+        public async override Task<ReadyMBillDto> Update(ReadyMBillDto input)
+        {
+            input.Productstr = string.Join('|', input.WorkBills.Select(r => r.ProductId).Distinct().ToList());
+            input.WorkBilQtys = string.Join('|', input.WorkBills.Select(r => r.Id + ":" + r.Qty).Distinct().ToList());
+            input.Linestr = string.Join('|', input.WorkBills.Select(r => r.LineId).Distinct().ToList());
             // 删除工单明细
             foreach (var item in _readyMBillWorkBillMap.GetAll().Where(r => r.ReadyMBillId == input.Id).ToList())
             {
@@ -94,8 +154,56 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             }
 
             CurrentUnitOfWork.SaveChanges();
-
-            return base.Update(input);
+            switch (input.MakeDetailsType)
+            {
+                case MakeDetailsType.BOM:
+                    // 按BOM生成备料明细
+                    input.ReadyMBillDetailed.Clear();
+                    foreach (var wo in input.WorkBills)
+                    {
+                        var boms = await _repositoryBOM.GetAll().Where(r => r.ProductId == wo.ProductId).ToListAsync();
+                        foreach (var bom in boms)
+                        {
+                            input.ReadyMBillDetailed.Add(new ReadyMBillDetailedDto()
+                            {
+                                BOMId = bom.Id,
+                                ReelMoveMethodId = input.ReelMoveMethodId,
+                                IsActive = true,
+                                PartNoId = bom.PartNoId,
+                                Qty = bom.Qty * wo.Qty,
+                                TenantId = AbpSession.TenantId,
+                            });
+                        }
+                    }
+                    break;
+                case MakeDetailsType.Slot:
+                    // 按料站表生成备料明细
+                    input.ReadyMBillDetailed.Clear();
+                    foreach (var wo in input.WorkBills)
+                    {
+                        var slots = await _repositorySlot.GetAll().Where(r => r.ProductId == wo.ProductId).ToListAsync();
+                        foreach (var slot in slots)
+                        {
+                            input.ReadyMBillDetailed.Add(new ReadyMBillDetailedDto()
+                            {
+                                SlotId = slot.Id,
+                                ReelMoveMethodId = input.ReelMoveMethodId,
+                                IsActive = true,
+                                PartNoId = slot.PartNoId,
+                                Qty = slot.Qty * wo.Qty,
+                                TenantId = AbpSession.TenantId,
+                            });
+                        }
+                    }
+                    break;
+                case MakeDetailsType.Detailed:
+                    // 直接传入备料明细灯,不做任何操作
+                    break;
+                default:
+                    break;
+            }
+            var res = await base.Update(input);
+            return res;
         }
 
         public async Task<ICollection<ReadyMBillDetailedDto>> GetDetailedById(string id)
@@ -118,7 +226,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
             return ObjectMapper.Map<List<ReadyMBillDto>>(res);
         }
-
 
         public async Task<bool> BatchInsOrUpdate(ICollection<RBBatchReadyMBillDto> input)
         {
@@ -260,27 +367,51 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 }
             }
 
-            // 清除现有灯状态
-            var la = await _repositorySL.GetAllListAsync(s => s.BrightState != BrightState.Off);
-            foreach (var sl in la)
+            // 备料返回信息
+            ReadyMResultDto readyMResultDto = new ReadyMResultDto() { ReReadyMBillId = readyM.ReReadyMBill };
+            //// 发料单信息
+            //List<ReelSendTemp> reelSendTempDtos = new List<ReelSendTemp>();
+            //// 缺料信息
+            //List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
+            // 获取灯配置,是单灯还是多灯
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1) // 三色灯
             {
-                sl.BrightState = BrightState.Off;
-                // await _repositorySL.UpdateAsync(sl);
+                // 获取当前灯颜色
+                var nowLightColor = await _repositorySL.GetAll().Where(r => r.LightState == LightState.On)
+                    .GroupBy(l => l.LightColor).Select(g => g.Key).ToListAsync();
+                if (!nowLightColor.Contains(LightColor.Green))
+                {
+                    lightColor = LightColor.Green;
+                }
+                else if (!nowLightColor.Contains(LightColor.Red))
+                {
+                    lightColor = LightColor.Red;
+                }
+                else if (!nowLightColor.Contains(LightColor.Blue))
+                {
+                    lightColor = LightColor.Red;
+                }
+                else
+                {
+                    // 本次备料勾选混乱
+                    throw new LYException("三色灯最多支持三个备料单同时备料,如需备料请先关闭一个备料单");
+                }
+            }
+            else
+            {
+                // 单色灯支持一个工单备料
+                var old = await _repositoryRST.FirstOrDefaultAsync(r => r.IsSend == false);
+                if (old != null)
+                {
+                    throw new LYException("单色灯最多支持一个备料单同时备料,如需备料请先关闭备料单");
+                }
             }
 
-            // 清除两张临时表
-            await _repositoryRST.DeleteAsync(r => true);
-
-            await _repositoryRSHT.DeleteAsync(r => true);
-
-            await CurrentUnitOfWork.SaveChangesAsync();
-
-            ReadyMResultDto readyMResultDto = new ReadyMResultDto() { ReReadyMBillId = readyM.ReReadyMBill };
-            List<ReelSendTemp> reelSendTempDtos = new List<ReelSendTemp>();
-            List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
-
             // 记账备料单
-            // var ReReadyMBill = _repositoryReadyMBill.Get(readyM.ReReadyMBill);
+
             var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
 
             // 调拨策略
@@ -288,9 +419,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
             // 查询备损数量
             var readyLossQty = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "readyLossQty")).Value);
-
-            // 查询提前预警天数
-            // var overdueDay = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "overdueDay")).Value);
 
             // 查询强制先进先出天数
             var mustFifoDay = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay")).Value);
@@ -300,21 +428,16 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             foreach (var readyItemDto in readyM.ReadyMBills)
             {
                 var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
-
-                if (readyItem.ReReadyMBillId != null && readyItem.ReReadyMBillId != ReReadyMBill.Id)
-                {
-                    throw new LYException(string.Format("所选备料单[{0}]已与[{1}]合并备料,不能再和[{2}]合并备料", readyItem.Id, readyItem.ReReadyMBillId, ReReadyMBill.Id));
-                }
-
                 readyItem.ReReadyMBillId = ReReadyMBill.Id;
-                await _repositoryReadyMBill.UpdateAsync(readyItem);
             }
+            await CurrentUnitOfWork.SaveChangesAsync();
 
             // 查询当前工单的物料需求详情
             var readyMBs = await _repositoryReadyMBilld.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.ReadyMBillId))
                 .ToListAsync();
 
-            var groupReadyMBs = readyMBs.GroupBy(s => s.PartNoId).Select(s => new ReadyMBillDetailedDto()
+            // 对备料详细进行分组
+            var groupReadyMBs = readyMBs.GroupBy(s => s.PartNoId).Select(s => new ReadyMBillDetailed()
             {
                 Id = s.FirstOrDefault(sm => sm.ReadyMBillId == ReReadyMBill.Id) != null ?
                      s.FirstOrDefault(sm => sm.ReadyMBillId == ReReadyMBill.Id).Id :
@@ -325,54 +448,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 ReturnQty = s.Sum(rm => rm.ReturnQty)
             }).ToList();
 
-            // 获取首套料工单
-            var firstWoBill = ReReadyMBill.WorkBills.FirstOrDefault().WorkBill;
-
-            // 获取所有工单套数
-            var woQty = readyM.ReadyMBills.Select(r => r.WorkBilQtys.Split('|').Select(q => int.Parse(q.Split(':')[1])).Sum()).Sum();
-
-            // 查询UPH值
-            var uph = await _repositoryUPH.FirstOrDefaultAsync(r => r.ProductId == firstWoBill.ProductId && r.LineId == firstWoBill.LineId);
-
-            if (uph == null)
-            {
-                throw new LYException(string.Format("机种[{0}];线别{1}未维护UPH信息", firstWoBill.ProductId, firstWoBill.LineId));
-            }
-
-            // 查询料站表
-            var slots = await _repositorySlot.GetAll().Where(s => s.ProductId == firstWoBill.ProductId && s.LineId == firstWoBill.LineId && s.IsActive)
-                .OrderBy(s => (int)s.BoardSide * -1)
-                .ThenBy(s => s.Index)
-                .ToListAsync();
-
-            // 按料需求详情生成发料料站表
-            foreach (var readym in groupReadyMBs)
-            {
-                // 查询该料号的料站表
-
-                var onePNSlot = slots.Where(s => s.PartNoId == readym.PartNoId);
-
-                foreach (var slot in onePNSlot)
-                {
-                    var sendSlot = await _repositoryReadySlot.GetAll().FirstOrDefaultAsync(rs => rs.SlotId == slot.Id && rs.ReReadyMBillId == ReReadyMBill.Id);
-                    if (sendSlot == null)
-                    {
-                        var sendSlotN = Mapper.Map<ReadySlot>(slot);
-                        if (sendSlotN != null)
-                        {
-                            sendSlotN.Id = null;
-                            sendSlotN.SlotId = slot.Id;
-                            sendSlotN.ReReadyMBillId = ReReadyMBill.Id;
-                            sendSlotN.SendPartNoId = readym.PartNoId;
-                            sendSlotN.DemandQty = readym.DemandQty;
-                            sendSlotN.ReadyMBillDetailedId = readym.Id;
-                            await _repositoryReadySlot.InsertAsync(sendSlotN);
-                        }
-                    }
-                }
-            }
-
-            await CurrentUnitOfWork.SaveChangesAsync();
 
             // 查询沿用工单的余料详情,且剩余数大于0的发料详细
             var followReadyBills = _repositoryReadyMBill.GetAll().Where(r => r.ReReadyMBillId == readyM.FollowReadyMBill.ReReadyMBillId);
@@ -381,213 +456,219 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 .GroupBy(r => r.PartNoId).Select(r => new
                 {
                     ReadyMBillDetailedId = r.FirstOrDefault().Id,
+                    ReadyMBillDetailed = r.FirstOrDefault(),
                     PartNoId = r.Key,
                     Qty = r.Sum(reel => reel.SendQty) - r.Sum(reel => reel.Qty) - r.Sum(reel => reel.ReturnQty)
                 })
                 .Where(r => r.Qty > 0);
 
-            // 按料站表进行发料            
-            foreach (var slot in slots)
+            #region 按合并后灯需求进行发料
+            foreach (var readyMB in groupReadyMBs)
             {
-                // 计算该站位用量 站位用量×所有备料单下面所有工单套数
-                var slotDemandQty = (int)Math.Ceiling((Double)slot.Qty / uph.Pin * woQty);
+                // 总需求数
+                var demandQty = readyMB.DemandQty;
 
-                // 查询该站位已发料数量
-                var slotSendQty = await _repositoryReadySlot.GetAll().Where(m => m.ReReadyMBillId == ReReadyMBill.Id && m.SlotId == slot.Id).SumAsync(m => m.SendQty);
+                // 已发数量
+                var sendQty = readyMB.SendQty;
 
-                // 该站位还需发料数量
-                var slotQty = slotDemandQty - slotSendQty + readyLossQty;
+                // 计算当前需求数量
+                var nowDemandQty = demandQty - sendQty;
 
-                if (slotQty > 0) // 该站位还需发料
+                var nowDemandSendQty = nowDemandQty;
+
+
+                // 先进行工单沿用,工单沿用全部沿用过来
+                #region 工单沿用
+                var surplusReel = await surplusReels.FirstOrDefaultAsync(r => r.PartNoId == readyMB.PartNoId);
+
+                if (surplusReel != null)
                 {
-                    // 查询替代料关系
-                    var readySlots = await _repositoryReadySlot.GetAll().Where(r => r.SlotId == slot.Id &&
-                     r.ReReadyMBillId == ReReadyMBill.Id && r.DemandQty > 0).OrderBy(r => r.DemandQty).ToListAsync();
+                    // 有沿用物料,进行物料沿用
+                    // 模拟添加发料临时表, 且标记为已发
+                    //reelSendTempDtos.Add(new ReelSendTemp()
+                    //{
+                    //    IsActive = true,
+                    //    PartNoId = readyMB.PartNoId,
+                    //    DemandQty = readyMB.DemandQty,
+                    //    IsSend = true,
+                    //    Qty = surplusReel.Qty,
+                    //    SendQty = surplusReel.Qty,
+                    //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                    //    ReReadyMBillId = ReReadyMBill.Id,
+                    //    ReadyMBillDetailedId = readyMB.Id,
+                    //    SlotId = readyMB.SlotId,
+                    //    BOMId = readyMB.BOMId
+                    //});
 
-
-                    while (slotQty > 0 && readySlots.Count > 0)  // 当该站位未挑够料 且 替代料关系没有用完 一直挑料
+                    await _repositoryRST.InsertAsync(new ReelSendTemp()
                     {
-                        var readySlot = readySlots.FirstOrDefault();
+                        IsActive = true,
+                        PartNoId = readyMB.PartNoId,
+                        DemandQty = readyMB.DemandQty,
+                        IsSend = true,
+                        Qty = surplusReel.Qty,
+                        SendQty = surplusReel.Qty,
+                        ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                        ReReadyMBillId = ReReadyMBill.Id,
+                        ReadyMBillDetailedId = readyMB.Id,
+                        SlotId = readyMB.SlotId,
+                        BOMId = readyMB.BOMId
+                    });
+                    await CurrentUnitOfWork.SaveChangesAsync();
 
-                        readySlots.Remove(readySlot);
+                    // 已发数量
+                    readyMB.SendQty += surplusReel.Qty;
+                    // 沿用数量
+                    readyMB.FollowQty += surplusReel.Qty;
 
-                        if (readySlot == null)
+                    // 更新此单的退料数量
+                    surplusReel.ReadyMBillDetailed.ReturnQty += surplusReel.Qty;
+
+                    // 重新计算当前需求数量
+                    nowDemandQty -= _repositoryRST.GetAll().Where(rst => rst.PartNoId == readyMB.PartNoId).Sum(rst => rst.Qty);
+                    nowDemandSendQty = nowDemandQty;
+                    // 添加沿用的发料日志
+                    await _reelMoveLog.InsertAsync(new ReelMoveLog()
+                    {
+                        PartNoId = surplusReel.PartNoId,
+                        Qty = surplusReel.Qty,
+                        ReadyMBillId = ReReadyMBill.Id,
+                        ReadyMBillDetailedId = readyMB.Id,
+                        ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                        SlotId = readyMB.SlotId,
+                        BOMId = readyMB.BOMId
+                    });
+                }
+                #endregion
+
+                // 本次挑料
+
+                // 如果需求没有用完 且站位没有发够 接着从库存挑料
+                if (nowDemandQty > 0)
+                {
+                    // 查询MPN信息                           
+                    var mpn = await _repositoryMPN.FirstOrDefaultAsync(readyMB.PartNoId);
+
+                    // 查询库存中该料号所有物料 在库存中挑料,分为两部分.一部分强制先进先出。一部分按数量挑选
+                    var reels = _repositoryReel.GetAll().Where(r =>
+                      r.StorageLocationId.Length > 0            // 有库位
+                      && r.IsActive     // 有效
+                      && r.PartNoId == readyMB.PartNoId   // 料号正确
+                      && ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)  // 仓库正确  
+                      && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null // 且未被挑料
+                      ).ToList()
+                      .Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now) // 未过期                     
+                      .ToList(); // 按d/c 进行先进先出排序
+
+
+                    // 死循环挑料,库存料盘还有。且没挑够，且站位未发够
+                    while (reels.Count > 0 && nowDemandQty > 0)
+                    {
+                        // 先挑选强制发料物料
+                        var reel = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife - mustFifoDay) > DateTime.Now).OrderBy(r => r.MakeDate).FirstOrDefault();
+
+                        if (reel == null) // 没有强制先进先出
                         {
-                            break;
-                        }
+                            // 获取库存最大料盘数量
+                            var maxQtyReel = reels.OrderBy(r => r.Qty).FirstOrDefault().Qty;
 
-
-                        // 查询该发料单发料情况
-                        var readySlotDDto = groupReadyMBs.FirstOrDefault(r => r.PartNoId == readySlot.SendPartNoId);
-
-                        //if (readySlotDDto == null)
-                        //{
-                        //    Logger.Info("+++" + Newtonsoft.Json.JsonConvert.SerializeObject(readySlot.ReadyMBillDetailedId));
-                        //}
-
-                        var readySlotD = await _repositoryReadyMBilld.FirstOrDefaultAsync(readySlotDDto.Id);
-
-                        readySlotD.DemandQty = readySlotDDto.DemandQty;
-                        // readySlotD.SendQty = readySlotDDto.SendQty;
-                        // readySlotD.ReturnQty = readySlotDDto.ReturnQty;
-
-                        // 算出可发料数量 需求+退料-已发+备损
-                        var demandSendQty = (readySlotDDto.DemandQty + readySlotDDto.ReturnQty - readySlotDDto.SendQty);
-
-                        // 获取当前发料单本物料剩余可发数量
-                        var nowDemandSendQty = demandSendQty - reelSendTempDtos.Where(rst => rst.PartNoId == readySlotDDto.PartNoId).Sum(rst => rst.Qty);
-
-                        // 如果需求没有用完 且站位没有发够 且有沿用物料
-                        if (readyM.FollowReadyMBill != null && nowDemandSendQty > 0 && slotQty > 0 && surplusReels.Count() > 0)
-                        {
-                            // 先进行工单沿用,工单沿用全部沿用过来
-                            var surplusReel = await surplusReels.FirstOrDefaultAsync(r => r.PartNoId == readySlot.SendPartNoId);
-
-                            if (surplusReel != null)
+                            if (nowDemandQty > maxQtyReel)
                             {
-                                // 模拟添加发料临时表,且标记为已发
-                                reelSendTempDtos.Add(new ReelSendTemp()
-                                {
-                                    IsActive = true,
-                                    PartNoId = readySlot.SendPartNoId,
-                                    DemandQty = readySlot.DemandQty,
-                                    IsSend = true,
-                                    Qty = surplusReel.Qty,
-                                    SendQty = surplusReel.Qty,
-                                    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                                    ReReadyMBillId = ReReadyMBill.Id,
-                                    ReadyMBillDetailedId = readySlot.ReadyMBillDetailedId,
-                                    SlotId = slot.Id
-                                });
-
-                                // 已发数量
-                                readySlotD.SendQty += surplusReel.Qty;
-                                // 沿用数量
-                                readySlotD.FollowQty += surplusReel.Qty;
-
-                                // 更新此单的退料数量
-                                var readyMBold = _repositoryReadyMBilld.Get(surplusReel.ReadyMBillDetailedId);
-                                readyMBold.ReturnQty += surplusReel.Qty;
-
-                                // 重新计算当前需求数量
-                                nowDemandSendQty = demandSendQty - reelSendTempDtos.Where(rst => rst.PartNoId == readySlotDDto.PartNoId).Sum(rst => rst.Qty);
-
-                                // 更新站位数量
-                                slotQty -= surplusReel.Qty;
-
-                                // 添加沿用的发料日志
-                                await _reelMoveLog.InsertAsync(new ReelMoveLog()
-                                {
-                                    PartNoId = surplusReel.PartNoId,
-                                    Qty = surplusReel.Qty,
-                                    ReadyMBillId = ReReadyMBill.Id,
-                                    ReadyMBillDetailedId = readySlot.ReadyMBillDetailedId,
-                                    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                                    SlotId = slot.Id
-                                });
+                                // 当需求数大于库存最大料盘数量,按FIFO取同数量中物料
+                                reel = reels.Where(r => r.Qty == maxQtyReel).OrderBy(r => r.MakeDate).FirstOrDefault();
                             }
-                        }
-
-                        // 如果需求没有用完 且站位没有发够 接着从库存挑料
-                        if (nowDemandSendQty > 0 && slotQty > 0)
-                        {
-                            // 查询MPN信息                           
-                            var mpn = await _repositoryMPN.FirstOrDefaultAsync(readySlot.SendPartNoId);
-
-                            // 查询库存中该料号所有物料 在库存中挑料,分为两部分.一部分强制先进先出。一部分按数量挑选
-                            var reels = _repositoryReel.GetAll().Where(r =>
-                              r.StorageLocationId.Length > 0            // 有库位
-                              && r.IsActive     // 有效
-                              && r.PartNoId == readySlot.SendPartNoId   // 料号正确
-                              && ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)  // 仓库正确  
-                              ).ToList()
-                              .Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now && reelSendTempDtos.FirstOrDefault(s => s.Id == r.Id) == null) // 未过期 且未被挑料
-                              .ToList(); // 按d/c 进行先进先出排序
-
-                            // && r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife - mustFifoDay) > DateTime.Now  // 必须先进先出
-
-
-
-                            // 死循环挑料,库存料盘还有。且没挑够，且站位未发够
-                            while (reels.Count > 0 && nowDemandSendQty > 0 && slotQty > 0)
+                            else
                             {
-                                // 先挑选强制发料物料
-                                var reel = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife - mustFifoDay) > DateTime.Now).OrderBy(r => r.MakeDate).FirstOrDefault();
+                                // 当需求数小于库存最大料盘数量
+                                //  1、先查询库存数量大于需求数且差距最小物料
+                                reel = reels.Where(r => r.Qty > nowDemandQty).OrderBy(r => r.Qty).FirstOrDefault();
 
-                                if (reel == null) // 没有强制先进先出
+                                if (reel == null)
                                 {
-                                    // 获取库存最大料盘数量
-                                    var maxQtyReel = reels.OrderBy(r => r.Qty).FirstOrDefault().Qty;
-
-                                    if (nowDemandSendQty > maxQtyReel)
-                                    {
-                                        // 当需求数大于库存最大料盘数量,按FIFO取同数量中物料
-                                        reel = reels.Where(r => r.Qty == maxQtyReel).OrderBy(r => r.MakeDate).FirstOrDefault();
-                                    }
-                                    else
-                                    {
-                                        // 当需求数小于库存最大料盘数量
-                                        //  1、先查询库存数量大于需求数且差距最小物料
-                                        reel = reels.Where(r => r.Qty > nowDemandSendQty).OrderBy(r => r.Qty).FirstOrDefault();
-
-                                        if (reel == null)
-                                        {
-                                            // 2、如果没有数量大于需求数物料，直接从最大包装开始拿料
-                                            reel = reels.OrderByDescending(r => r.Qty).FirstOrDefault();
-                                        }
-                                    }
+                                    // 2、如果没有数量大于需求数物料，直接从最大包装开始拿料
+                                    reel = reels.OrderByDescending(r => r.Qty).FirstOrDefault();
                                 }
-
-                                // 模拟添加发料临时表,且标记为已发
-                                reelSendTempDtos.Add(new ReelSendTemp()
-                                {
-                                    Id = reel.Id,
-                                    IsActive = true,
-                                    PartNoId = readySlotD.PartNoId,
-                                    DemandQty = readySlotD.DemandQty,
-                                    DemandSendQty = demandSendQty,
-                                    IsSend = false,
-                                    Qty = reel.Qty,
-                                    SendQty = reel.Qty,
-                                    StorageLocationId = reel.StorageLocationId,
-                                    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                                    ReReadyMBillId = ReReadyMBill.Id,
-                                    ReadyMBillDetailedId = readySlotD.Id,
-                                    SlotId = slot.Id
-                                });
-
-                                // 标记亮灯,真正的亮灯操作。移到专门的亮灯客户端
-                                var sl = _repositorySL.Get(reel.StorageLocationId);
-                                sl.BrightState = BrightState.On;
-                                await _repositorySL.UpdateAsync(sl);
-
-                                // 已发数量
-                                // readySlotD.SendQty += reel.Qty;
-                                reel.SlotId = slot.Id;
-
-                                // 更新站位数量
-                                slotQty -= reel.Qty;
-
-                                // 移除当前料盘,让其不进入下一次挑料
-                                reels.Remove(reel);
-
-                                // 重新计算当前需求数
-                                nowDemandSendQty = demandSendQty - reelSendTempDtos.Where(rst => rst.PartNoId == readySlotDDto.PartNoId).Sum(rst => rst.Qty);
                             }
                         }
+
+                        // 模拟添加发料临时表,且标记为已发
+                        //reelSendTempDtos.Add(new ReelSendTemp()
+                        //{
+                        //    Id = reel.Id,
+                        //    IsActive = true,
+                        //    PartNoId = readyMB.PartNoId,
+                        //    DemandQty = readyMB.DemandQty,
+                        //    DemandSendQty = nowDemandSendQty,
+                        //    IsSend = false,
+                        //    Qty = reel.Qty,
+                        //    SendQty = reel.Qty,
+                        //    StorageLocationId = reel.StorageLocationId,
+                        //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                        //    ReReadyMBillId = ReReadyMBill.Id,
+                        //    ReadyMBillDetailedId = readyMB.Id,
+                        //    SlotId = readyMB.SlotId,
+                        //    BOMId = readyMB.BOMId
+                        //});
+                        await _repositoryRST.InsertAsync(new ReelSendTemp()
+                        {
+                            Id = reel.Id,
+                            IsActive = true,
+                            PartNoId = readyMB.PartNoId,
+                            DemandQty = readyMB.DemandQty,
+                            DemandSendQty = nowDemandSendQty,
+                            IsSend = false,
+                            Qty = reel.Qty,
+                            SendQty = reel.Qty,
+                            StorageLocationId = reel.StorageLocationId,
+                            ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                            ReReadyMBillId = ReReadyMBill.Id,
+                            ReadyMBillDetailedId = readyMB.Id,
+                            SlotId = readyMB.SlotId,
+                            BOMId = readyMB.BOMId
+                        });
+                        await CurrentUnitOfWork.SaveChangesAsync();
+
+
+                        // 标记亮灯,真正的亮灯操作。移到专门的亮灯客户端
+                        var sl = _repositorySL.Get(reel.StorageLocationId);
+                        sl.LightState = LightState.On;
+                        sl.LightColor = lightColor;
+                        await _repositorySL.UpdateAsync(sl);
+
+                        // 已发数量
+                        // readySlotD.SendQty += reel.Qty;
+                        reel.SlotId = readyMB.SlotId;
+
+                        // 移除当前料盘,让其不进入下一次挑料
+                        reels.Remove(reel);
+
+                        // 重新计算当前需求数
+                        nowDemandSendQty -= reel.Qty;
                     }
                 }
             }
 
+            #endregion
+
             // 计算缺料
             foreach (var readyMB in groupReadyMBs)
             {
-                var selectQty = reelSendTempDtos.Where(rst => rst.ReadyMBillDetailedId == readyMB.Id).Sum(rst => rst.Qty);
+                var selectQty = _repositoryRST.GetAll().Where(rst => rst.ReadyMBillDetailedId == readyMB.Id).Sum(rst => rst.Qty);
                 var pnOneShortQty = readyMB.DemandQty - readyMB.SendQty + readyMB.ReturnQty - selectQty;
 
                 if (pnOneShortQty > 0)
                 {
-                    reelShortTemps.Add(new ReelShortTemp()
+                    //reelShortTemps.Add(new ReelShortTemp()
+                    //{
+                    //    DemandQty = readyMB.DemandQty,
+                    //    DemandSendQty = readyMB.DemandQty - readyMB.SendQty + readyMB.ReturnQty,
+                    //    IsActive = true,
+                    //    PartNoId = readyMB.PartNoId,
+                    //    ReReadyMBillId = ReReadyMBill.Id,
+                    //    ShortQty = pnOneShortQty,
+                    //    SelectQty = selectQty,
+                    //});
+                    await _repositoryRSHT.InsertAsync(new ReelShortTemp()
                     {
                         DemandQty = readyMB.DemandQty,
                         DemandSendQty = readyMB.DemandQty - readyMB.SendQty + readyMB.ReturnQty,
@@ -597,25 +678,28 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                         ShortQty = pnOneShortQty,
                         SelectQty = selectQty,
                     });
+                    await CurrentUnitOfWork.SaveChangesAsync();
+
                 }
 
                 // 更新每条数据的最终挑料数量
-                foreach (var item in reelSendTempDtos.Where(r => r.ReadyMBillDetailedId == readyMB.Id))
+                foreach (var item in _repositoryRST.GetAll().Where(r => r.ReadyMBillDetailedId == readyMB.Id))
                 {
                     item.SelectQty = selectQty;
                 }
             }
 
 
-            foreach (var item in reelSendTempDtos)
-            {
-                await _repositoryRST.InsertAsync(item);
-            }
+            //foreach (var item in reelSendTempDtos)
+            //{
+            //    await _repositoryRST.InsertAsync(item);
+            //}
 
-            foreach (var item in reelShortTemps)
-            {
-                await _repositoryRSHT.InsertAsync(item);
-            }
+            //foreach (var item in reelShortTemps)
+            //{
+            //    await _repositoryRSHT.InsertAsync(item);
+            //}
+
 
             readyMResultDto.Success = true;
             readyMResultDto.Msg = "备料成功,打开备料看吧查询详情.";
@@ -623,20 +707,19 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             await CurrentUnitOfWork.SaveChangesAsync();
 
             // 亮灯
-            var lights = await _repositorySL.GetAllListAsync(s => s.BrightState != BrightState.Off);
+            var lights = await _repositorySL.GetAllListAsync(s => s.LightState != LightState.Off);
 
             //小灯
-            var simlights = lights.Select(l => new StorageLight() { ContinuedTime = 10, lightOrder = 1, MainBoardId = l.MainBoardId, RackPositionId = l.PositionId }).ToList();
+            var simlights = lights.Select(l => new StorageLight() { ContinuedTime = 10, LightColor = lightColor, LightOrder = 1, MainBoardId = l.MainBoardId, RackPositionId = l.PositionId }).ToList();
 
             LightService.LightOrder(simlights);
 
-            var houselights = simlights.Select(l => new HouseLight() { HouseLightSide = 1, lightOrder = 1, MainBoardId = l.MainBoardId }).Distinct().ToList();
+            var houselights = simlights.Select(l => new HouseLight() { HouseLightSide = 1, LightColor = lightColor, LightOrder = 1, MainBoardId = l.MainBoardId }).Distinct().ToList();
 
             LightService.HouseOrder(houselights);
 
             return readyMResultDto;
         }
-
 
         public async Task<ReadyMResultDto> ReadyFirstM(ReadyMDto readyM)
         {
@@ -644,7 +727,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             {
                 throw new LYException("合并工单必须为相同线别");
             }
-
 
             // 判断本次备料单是否全部有备料记录
             var rms = await _repositoryReadyMBill.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.Id) && r.ReReadyMBillId != null).Select(r => r.ReReadyMBillId).Distinct().ToListAsync();
@@ -662,23 +744,47 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                     throw new LYException("本次备料记账备料单[" + readyM.ReReadyMBill + "]和历史记账备料单[" + rms[0] + "]不一致");
                 }
             }
-            // 清除现有灯状态
-            var la = await _repositorySL.GetAllListAsync(s => s.BrightState != BrightState.Off);
-            foreach (var sl in la)
+            // 获取灯配置,是单灯还是多灯
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1) // 三色灯
             {
-                sl.BrightState = BrightState.Off;
+                // 获取当前灯颜色
+                var nowLightColor = await _repositorySL.GetAll().Where(r => r.LightState == LightState.On)
+                    .GroupBy(l => l.LightColor).Select(g => g.Key).ToListAsync();
+                if (!nowLightColor.Contains(LightColor.Green))
+                {
+                    lightColor = LightColor.Green;
+                }
+                else if (!nowLightColor.Contains(LightColor.Red))
+                {
+                    lightColor = LightColor.Red;
+                }
+                else if (!nowLightColor.Contains(LightColor.Blue))
+                {
+                    lightColor = LightColor.Red;
+                }
+                else
+                {
+                    // 本次备料勾选混乱
+                    throw new LYException("三色灯最多支持三个备料单同时备料,如需备料请先关闭一个备料单");
+                }
             }
-
-            await _repositoryRST.DeleteAsync(r => true);
-
-            await _repositoryRSHT.DeleteAsync(r => true);
-
-            await CurrentUnitOfWork.SaveChangesAsync();
+            else
+            {
+                // 单色灯支持一个工单备料
+                var old = await _repositoryRST.FirstOrDefaultAsync(r => r.IsSend == false);
+                if (old != null)
+                {
+                    throw new LYException("单色灯最多支持一个备料单同时备料,如需备料请先关闭备料单");
+                }
+            }
 
             // 备首套料
             ReadyMResultDto readyMResultDto = new ReadyMResultDto() { ReReadyMBillId = readyM.ReReadyMBill };
-            List<ReelSendTemp> reelSendTempDtos = new List<ReelSendTemp>();
-            List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
+            //List<ReelSendTemp> reelSendTempDtos = new List<ReelSendTemp>();
+            //List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
 
             // 记账备料单
             var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
@@ -688,36 +794,17 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             foreach (var readyItemDto in readyM.ReadyMBills)
             {
                 var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
-
-                if (readyItem.ReReadyMBillId != null && readyItem.ReReadyMBillId != ReReadyMBill.Id)
-                {
-                    throw new LYException(string.Format("所选备料单[{0}]已与[{1}]合并备料,不能再和[{2}]合并备料", readyItem.Id, readyItem.ReReadyMBillId, ReReadyMBill.Id));
-                }
-
                 readyItem.ReReadyMBillId = ReReadyMBill.Id;
-                // _repositoryReadyMBill.Update(readyItem);
             }
 
             // 获取首套料工单
             var firstWoBill = ReReadyMBill.WorkBills.FirstOrDefault().WorkBill;
-
-            // 查询UPH值
-            var uph = await _repositoryUPH.FirstOrDefaultAsync(r => r.ProductId == firstWoBill.ProductId && r.LineId == firstWoBill.LineId);
-
-            if (uph == null)
-            {
-                throw new LYException(string.Format("机种[{0}];线别{1}未维护UPH信息", firstWoBill.ProductId, firstWoBill.LineId));
-            }
 
             // 调拨策略
             var ReelMoveMethod = await _repositoryRMM.GetAll().Where(rmm => rmm.Id == ReReadyMBill.ReelMoveMethodId).Include(s => s.OutStorages).FirstOrDefaultAsync();
 
             // 查询最低备料数量
             var readyFirstMinimumQty = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "readyFirstMinimumQty")).Value);
-
-
-            // 查询提前预警天数
-            // var overdueDay = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "overdueDay")).Value);
 
             // 查询当前工单的物料需求详情
             var readyMBs = await _repositoryReadyMBilld.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.ReadyMBillId))
@@ -752,7 +839,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             // 小车全部灭灯
             foreach (var car in shelfCars)
             {
-                car.BrightState = BrightState.Off;
+                car.LightState = LightState.Off;
             }
 
             // 第一个table
@@ -770,7 +857,8 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 else
                 {
                     // 标记为亮灯
-                    shelfCar.BrightState = BrightState.On;
+                    shelfCar.LightState = LightState.On;
+                    shelfCar.LightColor = lightColor;
                     // 多用一个位置
                     nowPositionId++;
                     lastTable = nowTable;
@@ -780,130 +868,109 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 nowPositionId++;
             }
 
-            // 按料需求详情生成发料料站表
-            foreach (var readym in groupReadyMBs)
-            {
-                // 查询该料号的料站表
-
-                var onePNSlot = slots.Where(s => s.PartNoId == readym.PartNoId);
-
-                foreach (var slot in onePNSlot)
-                {
-                    var sendSlot = await _repositoryReadySlot.GetAll().FirstOrDefaultAsync(rs => rs.SlotId == slot.Id && rs.ReReadyMBillId == ReReadyMBill.Id);
-                    if (sendSlot == null)
-                    {
-                        var sendSlotN = Mapper.Map<ReadySlot>(slot);
-                        if (sendSlotN != null)
-                        {
-                            sendSlotN.Id = null;
-                            sendSlotN.SlotId = slot.Id;
-                            sendSlotN.ReReadyMBillId = ReReadyMBill.Id;
-                            sendSlotN.SendPartNoId = readym.PartNoId;
-                            sendSlotN.DemandQty = readym.DemandQty;
-                            sendSlotN.ReadyMBillDetailedId = readym.Id;
-                            await _repositoryReadySlot.InsertAsync(sendSlotN);
-                            // break;
-                        }
-                    }
-                }
-            }
-
             await CurrentUnitOfWork.SaveChangesAsync();
 
             // 按料站表备首套料
             foreach (var slot in slots)
             {
-                // 查询替代料关系
-                var readySlots = await _repositoryReadySlot.GetAll().Where(r => r.SlotId == slot.Id && r.DemandQty > 0 && r.ReReadyMBillId == ReReadyMBill.Id).ToListAsync();
 
-                foreach (var readySlot in readySlots)
+                // 获取MPQ数量
+                var mpn = await _repositoryMPN.FirstOrDefaultAsync(slot.PartNoId);
+
+                // 查询发料详细中对应行
+                var readyBM = groupReadyMBs.FirstOrDefault(r => r.PartNoId == slot.PartNoId);
+
+                // 查询库存中该料号符合条件物料并且按照 d/c 排序
+                var reels = await _repositoryReel.GetAll().Where(r =>
+                   r.StorageLocationId.Length > 0            // 有库位
+                   && r.IsActive     // 有效
+                   && r.PartNoId == slot.PartNoId  // 料号正确
+                   && (r.Qty >= readyFirstMinimumQty)
+                   && ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)
+                   && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null
+                 ) // 没有过期物料 d/c 加保质期  加 延续时间 减 提前预警时间 大于 当前时间为合格
+                  .ToListAsync();
+
+                reels = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now)
+                  .OrderBy(r => r.MakeDate).ToList(); // 按d/c 进行先进先出排序
+
+                var reel = reels.FirstOrDefault();
+
+                if (reel != null)  // 有找到物料,直接备出第一盘料,且跳出当前循环
                 {
-                    // 获取MPQ数量
-                    var mpn = await _repositoryMPN.FirstOrDefaultAsync(readySlot.SendPartNoId);
+                    // 添加发料信息
+                    //reelSendTempDtos.Add();
 
-                    // 查询库存中该料号符合条件物料并且按照 d/c 排序
-                    var reels = await _repositoryReel.GetAll().Where(r =>
-                       r.StorageLocationId.Length > 0            // 有库位
-                       && r.IsActive     // 有效
-                       && r.PartNoId == readySlot.SendPartNoId   // 料号正确
-                       && (r.Qty >= readyFirstMinimumQty)
-                       && ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)
-                     ) // 没有过期物料 d/c 加保质期  加 延续时间 减 提前预警时间 大于 当前时间为合格
-                      .ToListAsync();
-
-                    //&& ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)  // 仓库正确
-                    // && (r.Qty > readyFirstMinimumQty || r.Qty == mpn.MPQ1.Value)  // 数量大于最小发料数量 或者 为原包装
-
-                    reels = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now && reelSendTempDtos.FirstOrDefault(s => s.Id == r.Id) == null)
-                      .OrderBy(r => r.MakeDate).ToList(); // 按d/c 进行先进先出排序
-
-
-
-                    var reel = reels.FirstOrDefault();
-
-                    if (reel != null)  // 有找到物料,直接备出第一盘料,且跳出当前循环
+                    await _repositoryRST.InsertAsync(new ReelSendTemp()
                     {
+                        Id = reel.Id,
+                        IsActive = true,
+                        PartNoId = reel.PartNoId,
+                        DemandQty = readyBM.DemandQty,
+                        DemandSendQty = reel.Qty,
+                        IsSend = false,
+                        Qty = reel.Qty,
+                        SendQty = reel.Qty,
+                        StorageLocationId = reel.StorageLocationId,
+                        ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                        ReReadyMBillId = ReReadyMBill.Id,
+                        ReadyMBillDetailedId = readyBM.Id,
+                        SlotId = slot.Id,
+                        FisrtStorageLocationId = dicShelfCarSlotMap[slot.Id].Id
+                    });
+                    await CurrentUnitOfWork.SaveChangesAsync();
 
-                        // 添加发料信息
-                        reelSendTempDtos.Add(new ReelSendTemp()
-                        {
-                            Id = reel.Id,
-                            IsActive = true,
-                            PartNoId = reel.PartNoId,
-                            DemandQty = readySlot.DemandQty,
-                            DemandSendQty = reel.Qty,
-                            IsSend = false,
-                            Qty = reel.Qty,
-                            SendQty = reel.Qty,
-                            StorageLocationId = reel.StorageLocationId,
-                            ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                            ReReadyMBillId = ReReadyMBill.Id,
-                            ReadyMBillDetailedId = readySlot.ReadyMBillDetailedId,
-                            SlotId = slot.Id,
-                            FisrtStorageLocationId = dicShelfCarSlotMap[slot.Id].Id
-                        });
+                    reel.SlotId = slot.Id;
 
-                        reel.SlotId = slot.Id;
-
-                        // 标记亮灯,真正的亮灯操作。移到专门的亮灯客户端
-                        var sl = _repositorySL.Get(reel.StorageLocationId);
-                        sl.BrightState = BrightState.On;
-                        // _repositorySL.Update(sl);
-                        break;
-                    }
-
+                    // 标记亮灯,真正的亮灯操作。移到专门的亮灯客户端
+                    var sl = _repositorySL.Get(reel.StorageLocationId);
+                    sl.LightState = LightState.On;
+                    sl.LightColor = lightColor;
+                    break;
                 }
 
                 // 查询是否找到首料
-                var firstReel = reelSendTempDtos.FirstOrDefault(r => r.SlotId == slot.Id);
+                var firstReel = _repositoryRST.FirstOrDefault(r => r.SlotId == slot.Id);
                 if (firstReel == null)
                 {
                     // 如果没有找到首料,添加该站位的首料缺料信息
-                    var ReelShortTemp = new ReelShortTemp()
+                    //var ReelShortTemp = new ReelShortTemp()
+                    //{
+                    //    DemandQty = readyBM.DemandQty,  // 用所有料的数量总和代替
+                    //    DemandSendQty = readyFirstMinimumQty,  // 需发为最小数量
+                    //    IsActive = true,
+                    //    PartNoId = readyBM.PartNoId, // 为所有可发物料
+                    //    ReReadyMBillId = ReReadyMBill.Id,
+                    //    ShortQty = readyFirstMinimumQty,
+                    //    SlotId = slot.Id,
+                    //    SelectQty = 0
+                    //};
+
+                    //reelShortTemps.Add(ReelShortTemp);
+
+                    await _repositoryRSHT.InsertAsync(new ReelShortTemp()
                     {
-                        DemandQty = readySlots.Sum(s => s.DemandQty),  // 用所有料的数量总和代替
+                        DemandQty = readyBM.DemandQty,  // 用所有料的数量总和代替
                         DemandSendQty = readyFirstMinimumQty,  // 需发为最小数量
                         IsActive = true,
-                        PartNoId = readySlots.Select(s => s.SendPartNoId).FirstOrDefault() == null ? slot.PartNoId : readySlots.Select(s => s.SendPartNoId).FirstOrDefault(), // 为所有可发物料
+                        PartNoId = readyBM.PartNoId, // 为所有可发物料
                         ReReadyMBillId = ReReadyMBill.Id,
                         ShortQty = readyFirstMinimumQty,
                         SlotId = slot.Id,
                         SelectQty = 0
-                    };
-
-                    reelShortTemps.Add(ReelShortTemp);
+                    });
                 }
             }
 
-            foreach (var item in reelSendTempDtos)
-            {
-                await _repositoryRST.InsertAsync(item);
-            }
+            //foreach (var item in reelSendTempDtos)
+            //{
+            //    await _repositoryRST.InsertAsync(item);
+            //}
 
-            foreach (var item in reelShortTemps)
-            {
-                await _repositoryRSHT.InsertAsync(item);
-            }
+            //foreach (var item in reelShortTemps)
+            //{
+            //    await _repositoryRSHT.InsertAsync(item);
+            //}
 
             readyMResultDto.Success = true;
             readyMResultDto.Msg = "备料成功,打开备料看吧查询详情.";
@@ -911,7 +978,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             await CurrentUnitOfWork.SaveChangesAsync();
 
             // 亮灯
-            var lights = await _repositorySL.GetAllListAsync(s => s.BrightState != BrightState.Off);
+            var lights = await _repositorySL.GetAllListAsync(s => s.LightState != LightState.Off);
 
             //小灯
             var simlights = lights.Select(l => new
@@ -921,16 +988,15 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             }).Select(s => new StorageLight()
             {
                 ContinuedTime = 10,
-                lightOrder = 1,
+                LightOrder = 1,
                 MainBoardId = s.MainBoardId,
+                LightColor = lightColor,
                 RackPositionId = s.RackPositionId
             }).ToList();
 
             LightService.LightOrder(simlights);
 
-            //await _notificationService.SendNotification("LightOrder", simlights);
-
-            //// 灯塔
+            // 灯塔
             var houselights = simlights.Where(r => r.MainBoardId.ToString().Length != 3).Select(l => new
             {
                 l.MainBoardId
@@ -939,10 +1005,10 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             {
                 MainBoardId = s.MainBoardId,
                 HouseLightSide = 1,
-                lightOrder = 1
+                LightOrder = 1,
+                LightColor = lightColor
             })
             .ToList();
-            //await _notificationService.SendNotification("HouseOrder", houselights);
             LightService.HouseOrder(houselights);
 
             return readyMResultDto;

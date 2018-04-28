@@ -1,6 +1,10 @@
-﻿using LY.WMSCloud.Entities.ProduceData;
+﻿using Abp.Application.Services.Dto;
+using Abp.Linq.Extensions;
+using LY.WMSCloud.Entities;
+using LY.WMSCloud.Entities.ProduceData;
 using LY.WMSCloud.Entities.StorageData;
 using LY.WMSCloud.WMS.ProduceData.ReelMoveMethods.Dto;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -20,6 +24,19 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelMoveMethods
             _repositoryRMMStorageMap = repositoryRMMStorageMap;
             _repository = repository;
         }
+        [HttpPost]
+        public async override Task<PagedResultDto<ReelMoveMethodDto>> GetAll(PagedResultRequestInput input)
+        {
+            CheckGetAllPermission();
+
+            var query = _repository.DynamicQuery(input).Include(r=>r.OutStorages);
+
+            var tasksCount = await query.CountAsync();
+
+            var taskList = query.PageBy(input).ToList();
+
+            return new PagedResultDto<ReelMoveMethodDto>(tasksCount, ObjectMapper.Map<List<ReelMoveMethodDto>>(taskList));
+        }
 
         public override Task<ReelMoveMethodDto> Update(ReelMoveMethodDto input)
         {
@@ -33,7 +50,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReelMoveMethods
 
         public async Task<ICollection<ReelMoveMethodDto>> GetReelMoveMethodByKeyName(string keyName)
         {
-            var res = await _repository.GetAll().Where(c => c.Id.Contains(keyName) && c.AllocationTypes.ToString().ToLower().Contains("send")).Take(10).ToListAsync();  //  && c.AllocationType.ToString().ToLower().Contains("send")
+            var res = await _repository.GetAll().Where(c => c.Id.Contains(keyName) && c.AllocationTypesStr.ToLower().Contains("send")).Take(10).ToListAsync();  //  && c.AllocationType.ToString().ToLower().Contains("send")
 
             return ObjectMapper.Map<List<ReelMoveMethodDto>>(res);
         }

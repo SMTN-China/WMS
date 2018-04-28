@@ -2,6 +2,7 @@
 using Abp.Domain.Repositories;
 using Abp.Localization;
 using Abp.Reflection.Extensions;
+using Abp.Runtime.Session;
 using AutoMapper;
 using LY.WMSCloud.Authorization;
 using LY.WMSCloud.CommonService;
@@ -36,7 +37,7 @@ namespace LY.WMSCloud.Controllers
         readonly IRepository<MPN, String> _repositoryMPN;
         readonly IRepository<Slot, string> _repositorySlot;
         readonly IStorageLocationAppService _storageLocationAppService;
-        private IHostingEnvironment hostingEnv;
+        private IHostingEnvironment _hostingEnv;
         public FileUploadController(IRepository<BOM, string> repository,
             IRepository<Slot, string> repositorySlot,
             IRepository<MPN, String> repositoryMPN,
@@ -47,7 +48,7 @@ namespace LY.WMSCloud.Controllers
         {
             _repository = repository;
             _fileHelperService = fileHelperService;
-            hostingEnv = env;
+            _hostingEnv = env;
             _repositoryI18N = repositoryI18N;
             _repositoryMPN = repositoryMPN;
             _repositorySlot = repositorySlot;
@@ -70,7 +71,7 @@ namespace LY.WMSCloud.Controllers
                               .FileName
                               .Trim('"');
 
-                filename = hostingEnv.WebRootPath + $@"\{ filename }";
+                filename = _hostingEnv.WebRootPath + $@"\{ filename }";
                 size += file.Length;
                 using (FileStream fs = System.IO.File.Create(filename))
                 {
@@ -127,7 +128,7 @@ namespace LY.WMSCloud.Controllers
                               .FileName
                               .Trim('"');
 
-                filename = hostingEnv.WebRootPath + $@"\{ filename }";
+                filename = _hostingEnv.WebRootPath + $@"\{ filename }";
                 size += file.Length;
                 using (FileStream fs = System.IO.File.Create(filename))
                 {
@@ -157,6 +158,7 @@ namespace LY.WMSCloud.Controllers
                                 mpn.MPNType = mpn.MPNType;
                                 mpn.MPQs = mpnDto.MPQs;
                                 mpn.MSDLevel = mpnDto.MSDLevel;
+                                mpn.Supplier = mpnDto.Supplier;
                                 mpn.Name = mpnDto.Name;
                                 mpn.RegisterStorageId = mpnDto.RegisterStorageId;
                                 mpn.Remark = mpnDto.Remark;
@@ -178,443 +180,459 @@ namespace LY.WMSCloud.Controllers
         [AbpAuthorize(PermissionNames.Pages_ReadyMBills)]
         public async Task<List<ReadyMBillDetailedDto>> ReadyMBillDetailedImport(IFormFile file)
         {
-            var dtoName = "ReadyMBillDetailedDto";
-            var ps = await GetI18NByDtoName(dtoName);
-
-            long size = 0;
-
-            var filename = ContentDispositionHeaderValue
-                          .Parse(file.ContentDisposition)
-                          .FileName
-                           .Trim('"');
-
-            filename = hostingEnv.WebRootPath + $@"\{ filename }";
-            size += file.Length;
-            List<List<ReadyMBillDetailedDto>> res;
-            using (FileStream fs = System.IO.File.Create(filename))
+            try
             {
-                file.CopyTo(fs);
-                fs.Flush();
+                var dtoName = "ReadyMBillDetailedDto";
+                var ps = await GetI18NByDtoName(dtoName);
 
-                res = await _fileHelperService.ExcleToListEntities<ReadyMBillDetailedDto>(ps, dtoName, fs);
+                long size = 0;
+
+                var filename = ContentDispositionHeaderValue
+                              .Parse(file.ContentDisposition)
+                              .FileName
+                               .Trim('"');
+
+                filename = _hostingEnv.WebRootPath + $@"\{ filename }";
+                size += file.Length;
+                List<List<ReadyMBillDetailedDto>> res;
+                using (FileStream fs = System.IO.File.Create(filename))
+                {
+                    file.CopyTo(fs);
+                    fs.Flush();
+
+                    res = await _fileHelperService.ExcleToListEntities<ReadyMBillDetailedDto>(ps, dtoName, fs);
+                }
+
+                System.IO.File.Delete(filename);
+                return res.Where(s => s.Count > 0).FirstOrDefault();
             }
+            catch (Exception ex)
+            {
 
-            return res.Where(s => s.Count > 0).FirstOrDefault();
+                throw new LYException(ex.Message);
+            }
         }
 
         [HttpPost]
         [AbpAuthorize(PermissionNames.Pages_Slots)]
         public async Task SlotImport(string line, IFormFile file)
         {
-            await Task.Factory.StartNew(() => { });
-
-            List<string> noPns = new List<string>();
-
-            var filename = ContentDispositionHeaderValue
-                  .Parse(file.ContentDisposition)
-                  .FileName
-                   .Trim('"');
-
-            filename = hostingEnv.WebRootPath + $@"\{ filename }";
-
-            System.IO.File.Delete(filename);
-            using (FileStream fs = System.IO.File.Create(filename))
+            try
             {
-                file.CopyTo(fs);
-                fs.Flush();
+                List<string> noPns = new List<string>();
 
+                var filename = ContentDispositionHeaderValue
+                      .Parse(file.ContentDisposition)
+                      .FileName
+                       .Trim('"');
 
-            }
-            var lines = System.IO.File.ReadLines(filename).ToArray();
+                filename = _hostingEnv.WebRootPath + $@"\{ filename }";
 
-            string machine = null, product = null, table = null, machineType = null, version = null, slotName = null;
-            SideType boardSide = SideType.T;
-            SideType side = SideType.L;
-
-            List<Slot> listSlot = new List<Slot>();
-
-            if (lines[0].TrimStart().StartsWith("Machine"))  // NXT 料站表
-            {
-                machineType = "NXT";
-                foreach (var l in lines)
+                System.IO.File.Delete(filename);
+                using (FileStream fs = System.IO.File.Create(filename))
                 {
-                    var strs = l.Split("\t", StringSplitOptions.RemoveEmptyEntries);
-                    if (strs.Length == 2 && strs[0] == "Machine") // 获取机器名
-                    {
-                        machine = strs[1];
-                    }
-                    if (strs.Length == 2 && strs[0].StartsWith("Recipe")) // 获取机种
-                    {
-                        var ps = strs[1].Split("_", StringSplitOptions.RemoveEmptyEntries);
-                        product = ps[0].Substring(0, ps[0].Length - 1);
+                    file.CopyTo(fs);
+                    fs.Flush();
 
-                        if (ps[0].Substring(ps[0].Length - 1) == "S")
+
+                }
+                var lines = System.IO.File.ReadLines(filename).ToArray();
+
+                string machine = null, product = null, table = null, machineType = null, version = null, slotName = null;
+                SideType boardSide = SideType.T;
+                SideType side = SideType.L;
+
+                List<Slot> listSlot = new List<Slot>();
+
+                if (lines[0].TrimStart().StartsWith("Machine"))  // NXT 料站表
+                {
+                    machineType = "NXT";
+                    foreach (var l in lines)
+                    {
+                        var strs = l.Split("\t", StringSplitOptions.RemoveEmptyEntries);
+                        if (strs.Length == 2 && strs[0] == "Machine") // 获取机器名
                         {
-                            boardSide = SideType.B;
+                            machine = strs[1];
                         }
-                        else
+                        if (strs.Length == 2 && strs[0].StartsWith("Recipe")) // 获取机种
                         {
-                            boardSide = SideType.T;
+                            var ps = strs[1].Split("_", StringSplitOptions.RemoveEmptyEntries);
+                            product = ps[0].Substring(0, ps[0].Length - 1);
+
+                            if (ps[0].Substring(ps[0].Length - 1) == "S")
+                            {
+                                boardSide = SideType.B;
+                            }
+                            else
+                            {
+                                boardSide = SideType.T;
+                            }
                         }
-                    }
-                    if (strs.Length == 2 && strs[0] == "Revision") // 获取版本
-                    {
-                        version = strs[1];
-                    }
-
-
-
-                    if (strs.Length == 7 && strs[0].Contains("- "))
-                    {
-
-                        var partNoId = strs[1].Trim();
-
-                        if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
+                        if (strs.Length == 2 && strs[0] == "Revision") // 获取版本
                         {
-                            if (int.Parse(strs[5]) == 0)
+                            version = strs[1];
+                        }
+
+
+
+                        if (strs.Length == 7 && strs[0].Contains("- "))
+                        {
+
+                            var partNoId = strs[1].Trim();
+
+                            if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
+                            {
+                                if (int.Parse(strs[5]) == 0)
+                                {
+                                    continue;
+                                }
+                                table = strs[0].Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Replace("-", "");
+
+                                var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == strs[0]);
+                                if (slot == null)
+                                {
+                                    listSlot.Add(new Slot()
+                                    {
+                                        BoardSide = boardSide,
+                                        Feeder = strs[4],
+                                        IsActive = true,
+                                        LineId = line,
+                                        Machine = machine,
+                                        PartNoId = partNoId,
+                                        Version = version,
+                                        Table = table,
+                                        SlotName = strs[0],
+                                        Side = SideType.L,
+                                        Qty = int.Parse(strs[5]),
+                                        ProductId = product,
+                                        MachineType = machineType,
+                                        Location = string.Join(",", strs[6].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).Distinct().OrderBy(s => s)),
+                                        LineSide = SideType.L,
+
+                                    });
+                                }
+                                else
+                                {
+                                    slot.BoardSide = boardSide;
+                                    slot.Feeder = strs[4];
+                                    slot.IsActive = true;
+                                    slot.LineId = line;
+                                    slot.Machine = machine;
+                                    slot.PartNoId = partNoId;
+                                    slot.Version = version;
+                                    slot.Table = table;
+                                    slot.SlotName = strs[0];
+                                    slot.Side = SideType.L;
+                                    slot.Qty = int.Parse(strs[5]);
+                                    slot.ProductId = product;
+                                    slot.MachineType = machineType;
+                                    slot.Location = string.Join(",", strs[6].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s));
+                                    slot.LineSide = SideType.L;
+                                    listSlot.Add(slot);
+                                }
+                            }
+
+                        }
+
+                        if (strs.Length == 6 && strs[0].Contains("- "))
+                        {
+
+                            var partNoId = strs[1].Trim();
+
+                            if (int.Parse(strs[4]) == 0)
                             {
                                 continue;
                             }
-                            table = strs[0].Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Replace("-", "");
 
-                            var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == strs[0]);
-                            if (slot == null)
+                            if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
                             {
-                                listSlot.Add(new Slot()
-                                {
-                                    BoardSide = boardSide,
-                                    Feeder = strs[4],
-                                    IsActive = true,
-                                    LineId = line,
-                                    Machine = machine,
-                                    PartNoId = partNoId,
-                                    Version = version,
-                                    Table = table,
-                                    SlotName = strs[0],
-                                    Side = SideType.L,
-                                    Qty = int.Parse(strs[5]),
-                                    ProductId = product,
-                                    MachineType = machineType,
-                                    Location = string.Join(",", strs[6].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).Distinct().OrderBy(s => s)),
-                                    LineSide = SideType.L,
+                                table = strs[0].Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Replace("-", "");
 
-                                });
+                                var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == strs[0]);
+                                if (slot == null)
+                                {
+                                    listSlot.Add(new Slot()
+                                    {
+                                        BoardSide = boardSide,
+                                        IsActive = true,
+                                        LineId = line,
+                                        Machine = machine,
+                                        PartNoId = partNoId,
+                                        Version = version,
+                                        Table = table,
+                                        SlotName = strs[0],
+                                        Side = SideType.L,
+                                        Qty = int.Parse(strs[4]),
+                                        ProductId = product,
+                                        MachineType = machineType,
+                                        Location = string.Join(",", strs[5].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s)),
+                                        LineSide = SideType.L,
+                                    });
+                                }
+                                else
+                                {
+                                    slot.BoardSide = boardSide;
+                                    slot.IsActive = true;
+                                    slot.LineId = line;
+                                    slot.Machine = machine;
+                                    slot.PartNoId = partNoId;
+                                    slot.Version = version;
+                                    slot.Table = table;
+                                    slot.SlotName = strs[0];
+                                    slot.Side = SideType.L;
+                                    slot.Qty = int.Parse(strs[4]);
+                                    slot.ProductId = product;
+                                    slot.MachineType = machineType;
+                                    slot.Location = string.Join(",", strs[5].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
+                                        s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s));
+                                    slot.LineSide = SideType.L;
+                                    listSlot.Add(slot);
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                if (lines[0].TrimStart().Contains("Lot"))  // CM 料站表
+                {
+                    machineType = "CM";
+                    DataTable dataTable = _fileHelperService.OpenCSV(filename);
+
+                    foreach (DataRow item in dataTable.Rows)
+                    {
+                        if (item[0].ToString().Contains("Lot")) // 
+                        {
+                            var strs = item[0].ToString().Split(":");
+
+                            var ps = strs[1].Split(new char[] { '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+                            product = ps[0].Substring(0, ps[0].Length - 1).Trim();
+                            version = ps[1].Trim();
+                            if (ps[0].Substring(ps[0].Length - 1).Trim() == "S")
+                            {
+                                boardSide = SideType.B;
                             }
                             else
                             {
-                                slot.BoardSide = boardSide;
-                                slot.Feeder = strs[4];
-                                slot.IsActive = true;
-                                slot.LineId = line;
-                                slot.Machine = machine;
-                                slot.PartNoId = partNoId;
-                                slot.Version = version;
-                                slot.Table = table;
-                                slot.SlotName = strs[0];
-                                slot.Side = SideType.L;
-                                slot.Qty = int.Parse(strs[5]);
-                                slot.ProductId = product;
-                                slot.MachineType = machineType;
-                                slot.Location = string.Join(",", strs[6].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s));
-                                slot.LineSide = SideType.L;
-                                listSlot.Add(slot);
+                                boardSide = SideType.T;
                             }
                         }
 
-                    }
-
-                    if (strs.Length == 6 && strs[0].Contains("- "))
-                    {
-
-                        var partNoId = strs[1].Trim();
-
-                        if (int.Parse(strs[4]) == 0)
+                        if (item[0].ToString().Contains("MC") && !item[0].ToString().Contains("File"))
                         {
-                            continue;
+                            machine = item[0].ToString().Split(":", StringSplitOptions.RemoveEmptyEntries)[1];
                         }
-
+                        var partNoId = item[2].ToString().Trim();
+                        // 查询料号是否维护
                         if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
                         {
-                            table = strs[0].Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Replace("-", "");
+                            if (int.Parse(item[7].ToString().Trim()) == 0)
+                            {
+                                continue;
+                            }
 
-                            var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == strs[0]);
+                            // 变更站位
+                            if (item[1].ToString().Trim().Length > 0)
+                            {
+                                slotName = item[1].ToString().Trim();
+                            }
+
+                            table = item[0].ToString().Trim();
+                            if (item[4].ToString().Trim() == "R")
+                            {
+                                side = SideType.R;
+                            }
+                            else
+                            {
+                                side = SideType.L;
+                            }
+
+                            var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == slotName && s.Side == side);
                             if (slot == null)
                             {
                                 listSlot.Add(new Slot()
                                 {
                                     BoardSide = boardSide,
+                                    Feeder = item[5].ToString().Trim(),
                                     IsActive = true,
                                     LineId = line,
                                     Machine = machine,
                                     PartNoId = partNoId,
                                     Version = version,
                                     Table = table,
-                                    SlotName = strs[0],
-                                    Side = SideType.L,
-                                    Qty = int.Parse(strs[4]),
+                                    SlotName = slotName,
+                                    Side = side,
+                                    Qty = int.Parse(item[7].ToString().Trim()),
                                     ProductId = product,
                                     MachineType = machineType,
-                                    Location = string.Join(",", strs[5].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s)),
+                                    Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s)),
                                     LineSide = SideType.L,
+
                                 });
                             }
                             else
                             {
                                 slot.BoardSide = boardSide;
+                                slot.Feeder = item[5].ToString().Trim();
                                 slot.IsActive = true;
                                 slot.LineId = line;
                                 slot.Machine = machine;
                                 slot.PartNoId = partNoId;
                                 slot.Version = version;
                                 slot.Table = table;
-                                slot.SlotName = strs[0];
-                                slot.Side = SideType.L;
-                                slot.Qty = int.Parse(strs[4]);
+                                slot.SlotName = slotName;
+                                slot.Side = side;
+                                slot.Qty = int.Parse(item[7].ToString().Trim());
                                 slot.ProductId = product;
                                 slot.MachineType = machineType;
-                                slot.Location = string.Join(",", strs[5].Trim().Replace("\"", "").Replace("-", "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(s => s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries).Length > 1 ?
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[1] :
-                                    s.Trim().Split(':', StringSplitOptions.RemoveEmptyEntries)[0]).OrderBy(s => s));
+                                slot.Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s));
                                 slot.LineSide = SideType.L;
                                 listSlot.Add(slot);
+                            }
+                        }
+                    }
+                }
+
+                if (lines[0].TrimStart().StartsWith("Recipe"))  // NPM 料站表
+                {
+                    machineType = "NPM";
+                    DataTable dataTable = _fileHelperService.OpenCSV(filename);
+                    foreach (DataRow item in dataTable.Rows)
+                    {
+                        if (item[0].ToString().Contains("Recipe")) // 
+                        {
+                            var strs = item[0].ToString().Split(":");
+
+                            var ps = strs[1].Split("_", StringSplitOptions.RemoveEmptyEntries);
+                            product = ps[0].Substring(0, ps[0].Length - 1).Trim();
+                            version = ps[1].Trim();
+                            if (ps[0].Substring(ps[0].Length - 1).Trim() == "S")
+                            {
+                                boardSide = SideType.B;
+                            }
+                            else
+                            {
+                                boardSide = SideType.T;
+                            }
+                        }
+
+                        var partNoId = item[5].ToString().Trim();
+                        // 查询料号是否维护
+                        if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
+                        {
+                            if (int.Parse(item[7].ToString().Trim()) == 0)
+                            {
+                                continue;
+                            }
+
+                            // 变更站位
+                            if (item[3].ToString().Trim().Length > 0)
+                            {
+                                slotName = item[3].ToString().Trim();
+                            }
+
+                            table = item[2].ToString().Trim();
+                            if (item[4].ToString().Trim() == "R")
+                            {
+                                side = SideType.R;
+                            }
+                            else
+                            {
+                                side = SideType.L;
+                            }
+
+                            machine = item[1].ToString().Trim();
+
+                            var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == slotName && s.Side == side);
+                            if (slot == null)
+                            {
+                                listSlot.Add(new Slot()
+                                {
+                                    BoardSide = boardSide,
+                                    Feeder = item[6].ToString().Trim(),
+                                    IsActive = true,
+                                    LineId = line,
+                                    Machine = machine,
+                                    PartNoId = partNoId,
+                                    Version = version,
+                                    Table = table,
+                                    SlotName = slotName,
+                                    Side = side,
+                                    Qty = int.Parse(item[7].ToString().Trim()),
+                                    ProductId = product,
+                                    MachineType = machineType,
+                                    Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s)),
+                                    LineSide = SideType.L,
+
+                                });
+                            }
+                            else
+                            {
+                                slot.BoardSide = boardSide;
+                                slot.Feeder = item[6].ToString().Trim();
+                                slot.IsActive = true;
+                                slot.LineId = line;
+                                slot.Machine = machine;
+                                slot.PartNoId = partNoId;
+                                slot.Version = version;
+                                slot.Table = table;
+                                slot.SlotName = slotName;
+                                slot.Side = side;
+                                slot.Qty = int.Parse(item[7].ToString().Trim());
+                                slot.ProductId = product;
+                                slot.MachineType = machineType;
+                                slot.Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s));
+                                slot.LineSide = SideType.L;
+                                listSlot.Add(slot);
+                            }
+                        }
+                        else
+                        {
+                            if (item[5].ToString().Trim().Length > 0)
+                            {
+                                noPns.Add(item[5].ToString().Trim());
                             }
 
                         }
                     }
+
+
                 }
-            }
-
-            if (lines[0].TrimStart().Contains("Lot"))  // CM 料站表
-            {
-                machineType = "CM";
-                DataTable dataTable = _fileHelperService.OpenCSV(filename);
-
-                foreach (DataRow item in dataTable.Rows)
+                int slotIndex = 1;
+                foreach (var item in listSlot)
                 {
-                    if (item[0].ToString().Contains("Lot")) // 
-                    {
-                        var strs = item[0].ToString().Split(":");
-
-                        var ps = strs[1].Split(new char[] { '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
-                        product = ps[0].Substring(0, ps[0].Length - 1).Trim();
-                        version = ps[1].Trim();
-                        if (ps[0].Substring(ps[0].Length - 1).Trim() == "S")
-                        {
-                            boardSide = SideType.B;
-                        }
-                        else
-                        {
-                            boardSide = SideType.T;
-                        }
-                    }
-
-                    if (item[0].ToString().Contains("MC") && !item[0].ToString().Contains("File"))
-                    {
-                        machine = item[0].ToString().Split(":", StringSplitOptions.RemoveEmptyEntries)[1];
-                    }
-                    var partNoId = item[2].ToString().Trim();
-                    // 查询料号是否维护
-                    if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
-                    {
-                        if (int.Parse(item[7].ToString().Trim()) == 0)
-                        {
-                            continue;
-                        }
-
-                        // 变更站位
-                        if (item[1].ToString().Trim().Length > 0)
-                        {
-                            slotName = item[1].ToString().Trim();
-                        }
-
-                        table = item[0].ToString().Trim();
-                        if (item[4].ToString().Trim() == "R")
-                        {
-                            side = SideType.R;
-                        }
-                        else
-                        {
-                            side = SideType.L;
-                        }
-
-                        var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == slotName && s.Side == side);
-                        if (slot == null)
-                        {
-                            listSlot.Add(new Slot()
-                            {
-                                BoardSide = boardSide,
-                                Feeder = item[5].ToString().Trim(),
-                                IsActive = true,
-                                LineId = line,
-                                Machine = machine,
-                                PartNoId = partNoId,
-                                Version = version,
-                                Table = table,
-                                SlotName = slotName,
-                                Side = side,
-                                Qty = int.Parse(item[7].ToString().Trim()),
-                                ProductId = product,
-                                MachineType = machineType,
-                                Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s)),
-                                LineSide = SideType.L,
-
-                            });
-                        }
-                        else
-                        {
-                            slot.BoardSide = boardSide;
-                            slot.Feeder = item[5].ToString().Trim();
-                            slot.IsActive = true;
-                            slot.LineId = line;
-                            slot.Machine = machine;
-                            slot.PartNoId = partNoId;
-                            slot.Version = version;
-                            slot.Table = table;
-                            slot.SlotName = slotName;
-                            slot.Side = side;
-                            slot.Qty = int.Parse(item[7].ToString().Trim());
-                            slot.ProductId = product;
-                            slot.MachineType = machineType;
-                            slot.Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s));
-                            slot.LineSide = SideType.L;
-                            listSlot.Add(slot);
-                        }
-                    }
+                    item.Index = slotIndex;
+                    slotIndex++;
+                    await _repositorySlot.InsertOrUpdateAsync(item);
                 }
-            }
+                CurrentUnitOfWork.SaveChanges();
 
-            if (lines[0].TrimStart().StartsWith("Recipe"))  // NPM 料站表
-            {
-                machineType = "NPM";
-                DataTable dataTable = _fileHelperService.OpenCSV(filename);
-                foreach (DataRow item in dataTable.Rows)
+                // 将不在本次料表中的站位更新为无效
+                // 查询该机种该线别该版本
+                var NoActives = _repositorySlot.GetAll().Where(r => r.BoardSide == listSlot.FirstOrDefault().BoardSide && r.ProductId == listSlot.FirstOrDefault().ProductId && r.LineId == listSlot.FirstOrDefault().LineId && !listSlot.Select(s => s.Id).Contains(r.Id)).ToArray();
+
+                foreach (var item in NoActives)
                 {
-                    if (item[0].ToString().Contains("Recipe")) // 
-                    {
-                        var strs = item[0].ToString().Split(":");
-
-                        var ps = strs[1].Split("_", StringSplitOptions.RemoveEmptyEntries);
-                        product = ps[0].Substring(0, ps[0].Length - 1).Trim();
-                        version = ps[1].Trim();
-                        if (ps[0].Substring(ps[0].Length - 1).Trim() == "S")
-                        {
-                            boardSide = SideType.B;
-                        }
-                        else
-                        {
-                            boardSide = SideType.T;
-                        }
-                    }
-
-                    var partNoId = item[5].ToString().Trim();
-                    // 查询料号是否维护
-                    if (partNoId != null && _repositoryMPN.FirstOrDefault(partNoId) != null)
-                    {
-                        if (int.Parse(item[7].ToString().Trim()) == 0)
-                        {
-                            continue;
-                        }
-
-                        // 变更站位
-                        if (item[3].ToString().Trim().Length > 0)
-                        {
-                            slotName = item[3].ToString().Trim();
-                        }
-
-                        table = item[2].ToString().Trim();
-                        if (item[4].ToString().Trim() == "R")
-                        {
-                            side = SideType.R;
-                        }
-                        else
-                        {
-                            side = SideType.L;
-                        }
-
-                        machine = item[1].ToString().Trim();
-
-                        var slot = _repositorySlot.FirstOrDefault(s => s.BoardSide == boardSide && s.Machine == machine && s.ProductId == product && s.LineId == line && s.Table == table && s.PartNoId == partNoId && s.SlotName == slotName && s.Side == side);
-                        if (slot == null)
-                        {
-                            listSlot.Add(new Slot()
-                            {
-                                BoardSide = boardSide,
-                                Feeder = item[6].ToString().Trim(),
-                                IsActive = true,
-                                LineId = line,
-                                Machine = machine,
-                                PartNoId = partNoId,
-                                Version = version,
-                                Table = table,
-                                SlotName = slotName,
-                                Side = side,
-                                Qty = int.Parse(item[7].ToString().Trim()),
-                                ProductId = product,
-                                MachineType = machineType,
-                                Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s)),
-                                LineSide = SideType.L,
-
-                            });
-                        }
-                        else
-                        {
-                            slot.BoardSide = boardSide;
-                            slot.Feeder = item[6].ToString().Trim();
-                            slot.IsActive = true;
-                            slot.LineId = line;
-                            slot.Machine = machine;
-                            slot.PartNoId = partNoId;
-                            slot.Version = version;
-                            slot.Table = table;
-                            slot.SlotName = slotName;
-                            slot.Side = side;
-                            slot.Qty = int.Parse(item[7].ToString().Trim());
-                            slot.ProductId = product;
-                            slot.MachineType = machineType;
-                            slot.Location = string.Join(",", item[8].ToString().Trim().Replace("\"", "").Replace("-", "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).OrderBy(s => s));
-                            slot.LineSide = SideType.L;
-                            listSlot.Add(slot);
-                        }
-                    }
-                    else
-                    {
-                        if (item[5].ToString().Trim().Length > 0)
-                        {
-                            noPns.Add(item[5].ToString().Trim());
-                        }
-
-                    }
+                    item.IsActive = false;
+                    await _repositorySlot.UpdateAsync(item);
                 }
-
-
+                System.IO.File.Delete(filename);
             }
-            int slotIndex = 1;
-            foreach (var item in listSlot)
+            catch (Exception ex)
             {
-                item.Index = slotIndex;
-                slotIndex++;
-                _repositorySlot.InsertOrUpdate(item);
-            }
-            CurrentUnitOfWork.SaveChanges();
 
-            // 将不在本次料表中的站位更新为无效
-            // 查询该机种该线别该版本
-            var NoActives = _repositorySlot.GetAll().Where(r => r.BoardSide == listSlot.FirstOrDefault().BoardSide && r.ProductId == listSlot.FirstOrDefault().ProductId && r.LineId == listSlot.FirstOrDefault().LineId && !listSlot.Select(s => s.Id).Contains(r.Id)).ToArray();
-
-            foreach (var item in NoActives)
-            {
-                item.IsActive = false;
-                _repositorySlot.Update(item);
+                throw new LYException(ex.Message);
             }
         }
 
@@ -622,40 +640,49 @@ namespace LY.WMSCloud.Controllers
         [AbpAuthorize(PermissionNames.Pages_StorageLocations)]
         public async Task StorageLocationsImport(IFormFile file)
         {
-            var dtoName = "StorageLocationDto";
-            var ps = await GetI18NByDtoName(dtoName);
-
-            long size = 0;
-
-            var filename = ContentDispositionHeaderValue
-                          .Parse(file.ContentDisposition)
-                          .FileName
-                           .Trim('"');
-
-            filename = hostingEnv.WebRootPath + $@"\{ filename }";
-            size += file.Length;
-            using (FileStream fs = System.IO.File.Create(filename))
+            try
             {
-                file.CopyTo(fs);
-                fs.Flush();
+                var dtoName = "StorageLocationDto";
+                var ps = await GetI18NByDtoName(dtoName);
 
-                var res = await _fileHelperService.ExcleToListEntities<StorageLocationDto>(ps, dtoName, fs);
+                long size = 0;
 
-                foreach (var item in res)
+                var filename = ContentDispositionHeaderValue
+                              .Parse(file.ContentDisposition)
+                              .FileName
+                               .Trim('"');
+
+                filename = _hostingEnv.WebRootPath + $@"\{ filename }";
+                size += file.Length;
+                using (FileStream fs = System.IO.File.Create(filename))
                 {
-                    foreach (var sl in item)
+                    file.CopyTo(fs);
+                    fs.Flush();
+
+                    var res = await _fileHelperService.ExcleToListEntities<StorageLocationDto>(ps, dtoName, fs);
+
+                    foreach (var item in res)
                     {
-                        var isHave = await _storageLocationAppService.GetIsHave(sl.Id);
-                        if (isHave)
+                        foreach (var sl in item)
                         {
-                            await _storageLocationAppService.Update(sl);
-                        }
-                        else
-                        {
-                            await _storageLocationAppService.Create(sl);
+                            var isHave = await _storageLocationAppService.GetIsHave(sl.Id);
+                            if (isHave)
+                            {
+                                await _storageLocationAppService.Update(sl);
+                            }
+                            else
+                            {
+                                await _storageLocationAppService.Create(sl);
+                            }
                         }
                     }
                 }
+                System.IO.File.Delete(filename);
+            }
+            catch (Exception ex)
+            {
+
+                throw new LYException(ex.Message);
             }
         }
 
@@ -664,7 +691,10 @@ namespace LY.WMSCloud.Controllers
 
             var thisAssembly = typeof(WMSCloudApplicationModule).GetAssembly().ExportedTypes.Where(t => t.Name.ToLower() == dtoName.ToLower()).FirstOrDefault();
 
-            var dbI18N = await _repositoryI18N.GetAll().Where(i => i.Key.StartsWith(dtoName)).ToListAsync();
+            // 获取当前语言
+            var lang = await SettingManager.GetSettingValueForUserAsync(LocalizationSettingNames.DefaultLanguage, AbpSession.ToUserIdentifier());
+
+            var dbI18N = await _repositoryI18N.GetAll().Where(i => i.Key.StartsWith(dtoName) && i.LanguageName == lang).ToListAsync();
 
             var p = thisAssembly.GetProperties();
 
@@ -673,7 +703,8 @@ namespace LY.WMSCloud.Controllers
                 cfg.CreateMap<System.Reflection.PropertyInfo, ApplicationLanguageText>()
                     .ForMember(m => m.Key, opt => opt.MapFrom(s => dtoName + s.Name))
                     .ForMember(m => m.Value, opt => opt.MapFrom(s =>
-                        dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name) == null ? s.Name : dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name).Value));
+                        dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name) == null ? s.Name : dbI18N.FirstOrDefault(i => i.Key == dtoName + s.Name).Value))
+                    .ForMember(m => m.LanguageName, opt => opt.MapFrom(s => lang));
             }
              );
 

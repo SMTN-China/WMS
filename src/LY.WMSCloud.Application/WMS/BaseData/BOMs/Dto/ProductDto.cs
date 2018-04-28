@@ -10,13 +10,15 @@ namespace LY.WMSCloud.WMS.BaseData.BOMs.Dto
         /// <summary>
         /// 名称
         /// </summary>
-        [StringLength(30)]
+        [StringLength(500)]
         public string Name { get; set; }
         /// <summary>
         /// 备注
         /// </summary>
         [StringLength(500)]
         public string Remark { get; set; }
+        [StringLength(200)]
+        public string Supplier { get; set; }
 
         /// <summary>
         /// 子件数量

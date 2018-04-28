@@ -84,6 +84,14 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
         public async Task BrightByPartNoIds(LightOrderDto[] input)
         {
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
+
             // 查询料号库存
             List<string> reelIds = new List<string>();
             foreach (var item in input)
@@ -96,7 +104,8 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             {
                 RackPositionId = r.PositionId,
                 ContinuedTime = 10,
-                lightOrder = 1,
+                LightColor = lightColor,
+                LightOrder = 1,
                 MainBoardId = r.MainBoardId
             }).Select(r => r.Key).ToListAsync();
 
@@ -105,16 +114,39 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
 
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight { lightOrder = 0, MainBoardId = r.MainBoardId }).Select(r => r.Key).ToList();
+            var mains = lights.GroupBy(r => new AllLight
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId
+            }).Select(r => r.Key).ToList();
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 1,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 0
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 1,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1
+            }).ToList());
         }
 
         public async Task BrightByReelIds(LightOrderDto[] input)
         {
-
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
             List<string> reelIds = new List<string>();
             foreach (var item in input)
             {
@@ -129,24 +161,48 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             {
                 RackPositionId = r.PositionId,
                 ContinuedTime = 10,
-                lightOrder = 1,
+                LightOrder = 1,
+                LightColor = lightColor,
                 MainBoardId = r.MainBoardId
             }).Select(r => r.Key).ToListAsync();
 
             // 小灯
             LightService.LightOrder(lights);
 
-
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight { lightOrder = 0, MainBoardId = r.MainBoardId }).Select(r => r.Key).ToList();
+            var mains = lights.GroupBy(r => new AllLight
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId
+            }).Select(r => r.Key).ToList();
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightColor = lightColor,
+                LightOrder = 1,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 0
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 1, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 1,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1
+            }).ToList());
         }
 
         public async Task ExtinguishedByPartNoIds(LightOrderDto[] input)
         {
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
             // 查询料号库存
             List<string> reelIds = new List<string>();
             foreach (var item in input)
@@ -159,7 +215,8 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             {
                 RackPositionId = r.PositionId,
                 ContinuedTime = 10,
-                lightOrder = 0,
+                LightColor = lightColor,
+                LightOrder = 0,
                 MainBoardId = r.MainBoardId
             }).Select(r => r.Key).ToListAsync();
 
@@ -168,15 +225,39 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
 
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight { lightOrder = 0, MainBoardId = r.MainBoardId }).Select(r => r.Key).ToList();
+            var mains = lights.GroupBy(r => new AllLight
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId
+            }).Select(r => r.Key).ToList();
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 0
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1
+            }).ToList());
         }
 
         public async Task ExtinguishedByReelIds(LightOrderDto[] input)
         {
+            var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
+            var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
+            var lightColor = LightColor.Default;
+            if (lightType == 1)
+            {
+                lightColor = LightColor.Green;
+            }
             // 查询料号库存
             List<string> reelIds = new List<string>();
             foreach (var item in input)
@@ -189,7 +270,8 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             {
                 RackPositionId = r.PositionId,
                 ContinuedTime = 10,
-                lightOrder = 0,
+                LightColor = lightColor,
+                LightOrder = 0,
                 MainBoardId = r.MainBoardId
             }).Select(r => r.Key).ToListAsync();
 
@@ -198,11 +280,28 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
 
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight { lightOrder = 0, MainBoardId = r.MainBoardId }).Select(r => r.Key).ToList();
+            var mains = lights.GroupBy(r => new AllLight
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId
+            }).Select(r => r.Key).ToList();
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 0 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 0
+            }).ToList());
 
-            LightService.HouseOrder(lights.Select(r => new HouseLight() { lightOrder = 0, MainBoardId = r.MainBoardId, HouseLightSide = 1 }).ToList());
+            LightService.HouseOrder(lights.Select(r => new HouseLight()
+            {
+                LightOrder = 0,
+                LightColor = lightColor,
+                MainBoardId = r.MainBoardId,
+                HouseLightSide = 1
+            }).ToList());
         }
 
         [HttpPost]
@@ -537,8 +636,6 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 // 添加发料数量
                                 readyBillD.SendQty += reel.Qty;
 
-
-
                                 // 料站表发料数量改变
                                 readySlot.SendQty += reel.Qty;
 
@@ -556,7 +653,13 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
                                 // 灭灯
                                 await GetShelfUp();
-                                shelfUp.BrightState = BrightState.Off;
+                                shelfUp.LightState = LightState.Off;
+
+                                // 如果发料完成,删除临时表
+                                if (_repositoryRST.GetAll().Where(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId && r.IsSend == false).Count() == 0)
+                                {
+                                    await _repositoryRST.DeleteAsync(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId);
+                                }
 
                                 // 查询当前物料的站位信息
                                 resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlot.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlot.Machine + "]\r\nTable: [" + readySlot.Table + "]\r\n站位: [" +
@@ -570,23 +673,36 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                     StorageLight storage = new StorageLight()
                                     {
                                         ContinuedTime = 10,
-                                        lightOrder = 2,
+                                        LightOrder = 2,
                                         MainBoardId = shelfF.MainBoardId,
-                                        RackPositionId = shelfF.PositionId
+                                        RackPositionId = shelfF.PositionId,
+                                        LightColor = shelfF.LightColor
                                     };
                                     LightService.LightOrder(new List<StorageLight>() { storage });
                                 }
 
                                 // 灭小灯和塔灯
-                                LightService.LightOrder(new List<StorageLight>() { new StorageLight() { ContinuedTime = 10, lightOrder = 0, MainBoardId = shelfUp.MainBoardId, RackPositionId = shelfUp.PositionId } });
+                                LightService.LightOrder(new List<StorageLight>() { new StorageLight()
+                                {
+                                    ContinuedTime = 10,
+                                    LightOrder = 0,
+                                    MainBoardId = shelfUp.MainBoardId,
+                                    LightColor=shelfUp.LightColor,
+                                    RackPositionId = shelfUp.PositionId
+                                } });
 
                                 CurrentUnitOfWork.SaveChanges();
                                 // 大灯 可能需要修改
-                                var lights = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.BrightState != BrightState.Off);
+                                var lights = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off);
                                 if (lights.Count() == 0)
                                 {
                                     LightService.HouseOrder(new List<HouseLight>() { new HouseLight()
-                                    { HouseLightSide=1, lightOrder = 0, MainBoardId = shelfUp.MainBoardId } });
+                                    {
+                                        HouseLightSide =1,
+                                        LightOrder = 0,
+                                        LightColor =shelfUp.LightColor,
+                                        MainBoardId = shelfUp.MainBoardId
+                                    } });
                                 }
 
                                 #endregion
@@ -661,21 +777,21 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 reelMoveLog.SlotId = supplytemp.SlotId;
                                 await GetShelfUp();
                                 // 灭灯
-                                shelfUp.BrightState = BrightState.Off;
+                                shelfUp.LightState = LightState.Off;
 
                                 resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlotSupply.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlotSupply.Machine + "]\r\nTable: [" + readySlotSupply.Table + "]\r\n站位: [" +
                                     readySlotSupply.SlotName + "]\r\n边别: [" + (readySlotSupply.Side == SideType.L ? "L" : "R") + "]";
 
                                 // 灭小灯和塔灯
-                                LightService.LightOrder(new List<StorageLight>() { new StorageLight() { ContinuedTime = 10, lightOrder = 0, MainBoardId = shelfUp.MainBoardId, RackPositionId = shelfUp.PositionId } });
+                                LightService.LightOrder(new List<StorageLight>() { new StorageLight() { ContinuedTime = 10, LightColor = shelfUp.LightColor, LightOrder = 0, MainBoardId = shelfUp.MainBoardId, RackPositionId = shelfUp.PositionId } });
 
                                 CurrentUnitOfWork.SaveChanges();
                                 // 大灯 可能需要修改
-                                var lightssupply = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.BrightState != BrightState.Off);
+                                var lightssupply = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off);
                                 if (lightssupply.Count() == 0)
                                 {
                                     LightService.HouseOrder(new List<HouseLight>() { new HouseLight()
-                                    { HouseLightSide=1, lightOrder = 0, MainBoardId = shelfUp.MainBoardId } });
+                                    { HouseLightSide=1, LightOrder = 0, MainBoardId = shelfUp.MainBoardId, LightColor= shelfUp.LightColor } });
                                 }
 
                                 #endregion
