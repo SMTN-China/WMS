@@ -88,10 +88,10 @@
         public const string Pages_BarCodeAnalysis_Update = "Pages.BarCodeAnalysiss.Update";
         public const string Pages_BarCodeAnalysis_Delete = "Pages.BarCodeAnalysiss.Delete";
 
-        public const string Pages_StorageArea = "Pages.StorageArea";
-        public const string Pages_StorageArea_Add = "Pages.StorageArea.Create";
-        public const string Pages_StorageArea_Update = "Pages.StorageArea.Update";
-        public const string Pages_StorageArea_Delete = "Pages.StorageArea.Delete";
+        public const string Pages_StorageArea = "Pages.StorageAreas";
+        public const string Pages_StorageArea_Add = "Pages.StorageAreas.Create";
+        public const string Pages_StorageArea_Update = "Pages.StorageAreas.Update";
+        public const string Pages_StorageArea_Delete = "Pages.StorageAreas.Delete";
 
         public const string Pages_Reels = "Pages.Reels";
         public const string Pages_Reels_Add = "Pages.Reels.Create";
