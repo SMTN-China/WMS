@@ -1,4 +1,5 @@
 ﻿using Abp.Configuration;
+using Abp.Dependency;
 using AutoMapper;
 using LY.WMSCloud.Base;
 using LY.WMSCloud.CommonService;
@@ -132,6 +133,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                     break;
             }
             var res = await base.Create(input);
+
             return res;
         }
 
@@ -706,7 +708,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
 
             readyMResultDto.Success = true;
-            readyMResultDto.Msg = "备料成功,打开备料看吧查询详情.";
+            readyMResultDto.Msg = "备料成功,打开备料看版查询详情.";
 
             await CurrentUnitOfWork.SaveChangesAsync();
 
@@ -1018,6 +1020,61 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             LightService.HouseOrder(houselights);
 
             return readyMResultDto;
+        }
+
+        public async Task CancelReadyM(string readyMid)
+        {
+            // 查询当前备料单临时表
+            var sendTemp = await _repositoryRST.GetAll().Where(r => r.ReReadyMBillId == readyMid).ToListAsync();
+
+            // 查询当前备料单库位
+            var lights = await _repositorySL.GetAll().Where(l => sendTemp.Select(r => r.StorageLocationId).ToList().Contains(l.Id)
+            && l.LightState == LightState.On
+            ).ToListAsync();
+
+            // 库位灭灯
+            //小灯
+            var simlights = lights.Select(l => new
+            {
+                l.MainBoardId,
+                RackPositionId = l.PositionId,
+                l.LightColor
+            }).Select(s => new StorageLight()
+            {
+                ContinuedTime = 10,
+                LightOrder = 1,
+                MainBoardId = s.MainBoardId,
+                LightColor = s.LightColor,
+                RackPositionId = s.RackPositionId
+            }).ToList();
+
+            LightService.LightOrder(simlights);
+
+            // 灯塔
+            var houselights = simlights.Where(r => r.MainBoardId.ToString().Length != 3).Select(l => new
+            {
+                l.MainBoardId,
+                l.LightColor
+            }).Distinct()
+            .Select(s => new HouseLight()
+            {
+                MainBoardId = s.MainBoardId,
+                HouseLightSide = 1,
+                LightOrder = 1,
+                LightColor = s.LightColor
+            })
+            .ToList();
+            LightService.HouseOrder(houselights);
+
+            // 更新库位表
+            foreach (var item in lights)
+            {
+                item.LightState = LightState.Off;
+            }
+
+            // 删除临时表
+            _repositoryRST.BatchDelete(r => r.ReReadyMBillId == readyMid);
+
         }
     }
 }
