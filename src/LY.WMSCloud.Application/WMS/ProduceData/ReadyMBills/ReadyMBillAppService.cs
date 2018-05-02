@@ -479,65 +479,68 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
                 // 先进行工单沿用,工单沿用全部沿用过来
                 #region 工单沿用
-                var surplusReel = await surplusReels.FirstOrDefaultAsync(r => r.PartNoId == readyMB.PartNoId);
-
-                if (surplusReel != null)
+                if (readyM.FollowReadyMBill != null && readyM.FollowReadyMBill.ReReadyMBillId != null)
                 {
-                    // 有沿用物料,进行物料沿用
-                    // 模拟添加发料临时表, 且标记为已发
-                    //reelSendTempDtos.Add(new ReelSendTemp()
-                    //{
-                    //    IsActive = true,
-                    //    PartNoId = readyMB.PartNoId,
-                    //    DemandQty = readyMB.DemandQty,
-                    //    IsSend = true,
-                    //    Qty = surplusReel.Qty,
-                    //    SendQty = surplusReel.Qty,
-                    //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                    //    ReReadyMBillId = ReReadyMBill.Id,
-                    //    ReadyMBillDetailedId = readyMB.Id,
-                    //    SlotId = readyMB.SlotId,
-                    //    BOMId = readyMB.BOMId
-                    //});
+                    var surplusReel = await surplusReels.FirstOrDefaultAsync(r => r.PartNoId == readyMB.PartNoId);
 
-                    await _repositoryRST.InsertAsync(new ReelSendTemp()
+                    if (surplusReel != null)
                     {
-                        IsActive = true,
-                        PartNoId = readyMB.PartNoId,
-                        DemandQty = readyMB.DemandQty,
-                        IsSend = true,
-                        Qty = surplusReel.Qty,
-                        SendQty = surplusReel.Qty,
-                        ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                        ReReadyMBillId = ReReadyMBill.Id,
-                        ReadyMBillDetailedId = readyMB.Id,
-                        SlotId = readyMB.SlotId,
-                        BOMId = readyMB.BOMId
-                    });
-                    await CurrentUnitOfWork.SaveChangesAsync();
+                        // 有沿用物料,进行物料沿用
+                        // 模拟添加发料临时表, 且标记为已发
+                        //reelSendTempDtos.Add(new ReelSendTemp()
+                        //{
+                        //    IsActive = true,
+                        //    PartNoId = readyMB.PartNoId,
+                        //    DemandQty = readyMB.DemandQty,
+                        //    IsSend = true,
+                        //    Qty = surplusReel.Qty,
+                        //    SendQty = surplusReel.Qty,
+                        //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                        //    ReReadyMBillId = ReReadyMBill.Id,
+                        //    ReadyMBillDetailedId = readyMB.Id,
+                        //    SlotId = readyMB.SlotId,
+                        //    BOMId = readyMB.BOMId
+                        //});
 
-                    // 已发数量
-                    readyMB.SendQty += surplusReel.Qty;
-                    // 沿用数量
-                    readyMB.FollowQty += surplusReel.Qty;
+                        await _repositoryRST.InsertAsync(new ReelSendTemp()
+                        {
+                            IsActive = true,
+                            PartNoId = readyMB.PartNoId,
+                            DemandQty = readyMB.DemandQty,
+                            IsSend = true,
+                            Qty = surplusReel.Qty,
+                            SendQty = surplusReel.Qty,
+                            ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                            ReReadyMBillId = ReReadyMBill.Id,
+                            ReadyMBillDetailedId = readyMB.Id,
+                            SlotId = readyMB.SlotId,
+                            BOMId = readyMB.BOMId
+                        });
+                        await CurrentUnitOfWork.SaveChangesAsync();
 
-                    // 更新此单的退料数量
-                    surplusReel.ReadyMBillDetailed.ReturnQty += surplusReel.Qty;
+                        // 已发数量
+                        readyMB.SendQty += surplusReel.Qty;
+                        // 沿用数量
+                        readyMB.FollowQty += surplusReel.Qty;
 
-                    // 重新计算当前需求数量
-                    nowDemandQty -= _repositoryRST.GetAll().Where(rst => rst.PartNoId == readyMB.PartNoId).Sum(rst => rst.Qty);
-                    nowDemandSendQty = nowDemandQty;
-                    // 添加沿用的发料日志
-                    await _reelMoveLog.InsertAsync(new ReelMoveLog()
-                    {
-                        PartNoId = surplusReel.PartNoId,
-                        Qty = surplusReel.Qty,
-                        ReadyMBillId = ReReadyMBill.Id,
-                        ReadyMBillDetailedId = readyMB.Id,
-                        ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                        SlotId = readyMB.SlotId,
-                        BOMId = readyMB.BOMId
-                    });
+                        // 更新此单的退料数量
+                        surplusReel.ReadyMBillDetailed.ReturnQty += surplusReel.Qty;
+
+                        // 重新计算当前需求数量
+                        nowDemandQty -= _repositoryRST.GetAll().Where(rst => rst.PartNoId == readyMB.PartNoId).Sum(rst => rst.Qty);
+                        nowDemandSendQty = nowDemandQty;
+                        // 添加沿用的发料日志
+                        await _reelMoveLog.InsertAsync(new ReelMoveLog()
+                        {
+                            PartNoId = surplusReel.PartNoId,
+                            Qty = surplusReel.Qty,
+                            ReadyMBillId = ReReadyMBill.Id,
+                            ReadyMBillDetailedId = readyMB.Id,
+                            ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
+                            SlotId = readyMB.SlotId,
+                            BOMId = readyMB.BOMId
+                        });
+                    }
                 }
                 #endregion
 
@@ -555,10 +558,11 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                       && r.IsActive     // 有效
                       && r.PartNoId == readyMB.PartNoId   // 料号正确
                       && ReelMoveMethod.OutStorages.Select(s => s.StorageId).Contains(r.StorageId)  // 仓库正确  
-                      && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null // 且未被挑料
                       ).ToList()
-                      .Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now) // 未过期                     
+                      .Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null) // 未过期                     
                       .ToList(); // 按d/c 进行先进先出排序
+
+                    // && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null // 且未被挑料
 
 
                     // 死循环挑料,库存料盘还有。且没挑够，且站位未发够
@@ -890,6 +894,8 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                    && _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null
                  ) // 没有过期物料 d/c 加保质期  加 延续时间 减 提前预警时间 大于 当前时间为合格
                   .ToListAsync();
+
+                reels = reels.Where(r => _repositoryRST.FirstOrDefault(s => s.Id == r.Id) == null).ToList();
 
                 reels = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife) > DateTime.Now)
                   .OrderBy(r => r.MakeDate).ToList(); // 按d/c 进行先进先出排序
