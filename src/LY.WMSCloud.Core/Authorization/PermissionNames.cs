@@ -138,6 +138,15 @@
         public const string Pages_PrintReels_Update = "Pages.PrintReels.Update";
         public const string Pages_PrintReels_Delete = "Pages.PrintReels.Delete";
 
-        
+        public const string Pages_ReelSendTemps = "Pages.ReelSendTemps";
+        public const string Pages_ReelSendTemps_Add = "Pages.ReelSendTemps.Create";
+        public const string Pages_ReelSendTemps_Update = "Pages.ReelSendTemps.Update";
+        public const string Pages_ReelSendTemps_Delete = "Pages.ReelSendTemps.Delete";
+
+        public const string Pages_ReelShortTemps = "Pages.ReelShortTemps";
+        public const string Pages_ReelShortTemps_Add = "Pages.ReelShortTemps.Create";
+        public const string Pages_ReelShortTemps_Update = "Pages.ReelShortTemps.Update";
+        public const string Pages_ReelShortTemps_Delete = "Pages.ReelShortTemps.Delete";
+
     }
 }

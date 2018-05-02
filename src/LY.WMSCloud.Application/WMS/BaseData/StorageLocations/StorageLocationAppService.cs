@@ -72,7 +72,7 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
 
         public async Task AllBright()
         {
-            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
             var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
             var lightColor = LightColor.Default;
             if (lightType == 1)
@@ -109,7 +109,7 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
         public async Task AllExtinguished()
         {
             // 查询所有空库位
-            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
             var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
             var lightColor = LightColor.Default;
             if (lightType == 1)
@@ -224,7 +224,7 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
         public async Task NonReelBright()
         {
             // 查询所有空库位
-            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay");
+            var settinglightType = await _repositoryST.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
             var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
             var lightColor = LightColor.Default;
             if (lightType == 1)
