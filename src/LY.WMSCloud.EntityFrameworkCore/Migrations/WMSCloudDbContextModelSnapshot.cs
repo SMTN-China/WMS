@@ -1590,6 +1590,8 @@ namespace LY.WMSCloud.Migrations
                     b.Property<string>("ReReadyMBillId")
                         .HasMaxLength(36);
 
+                    b.Property<int>("ReadyMStatus");
+
                     b.Property<int>("ReadyMType");
 
                     b.Property<string>("ReelMoveMethodId")

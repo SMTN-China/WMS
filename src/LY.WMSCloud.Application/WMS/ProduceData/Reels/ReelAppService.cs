@@ -619,11 +619,19 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 }
                                 // 查询挑料料站表行数据
                                 var readySlot = await _repositoryReadySlot.FirstOrDefaultAsync(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId && r.SlotId == sendtemp.SlotId);
+
                                 if (sendtemp.IsSend)
                                 {
+                                    if (readySlot != null)
+                                    {
+                                        resDto.Msg = @"料卷已经发料    " + sendtemp.FisrtStorageLocationId + "" + "\r\n站位信息: \r\n" + "面别: [" + (readySlot.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlot.Machine + "]\r\nTable: [" + readySlot.Table + "]\r\n站位: [" +
+                                   readySlot.SlotName + "]\r\n边别: [" + (readySlot.Side == SideType.L ? "L" : "R") + "]";
+                                    }
+                                    else
+                                    {
+                                        resDto.Msg = "料卷已经发料";
+                                    }
 
-                                    resDto.Msg = @"料卷已经发料    " + sendtemp.FisrtStorageLocationId + "" + "\r\n站位信息: \r\n" + "面别: [" + (readySlot.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlot.Machine + "]\r\nTable: [" + readySlot.Table + "]\r\n站位: [" +
-                                    readySlot.SlotName + "]\r\n边别: [" + (readySlot.Side == SideType.L ? "L" : "R") + "]";
                                     throw new LYException(resDto.Msg);
                                 }
 
@@ -637,7 +645,10 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 readyBillD.SendQty += reel.Qty;
 
                                 // 料站表发料数量改变
-                                readySlot.SendQty += reel.Qty;
+                                if (readySlot != null)
+                                {
+                                    readySlot.SendQty += reel.Qty;
+                                }
 
                                 // 改变料盘备料关联
                                 reel.ReadyMBillDetailedId = readyBillD.Id;
@@ -662,9 +673,31 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 }
 
                                 // 查询当前物料的站位信息
-                                resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlot.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlot.Machine + "]\r\nTable: [" + readySlot.Table + "]\r\n站位: [" +
-                                    readySlot.SlotName + "]\r\n边别: [" + (readySlot.Side == SideType.L ? "L" : "R") + "]";
+                                if (readySlot != null)
+                                {
+                                    resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlot.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlot.Machine + "]\r\nTable: [" + readySlot.Table + "]\r\n站位: [" +
+                                                                       readySlot.SlotName + "]\r\n边别: [" + (readySlot.Side == SideType.L ? "L" : "R") + "]";
+                                }
+                                else
+                                {
+                                    resDto.Msg = "发料成功";
+                                }
 
+                                var readyMs = await _repositoryReadyMBill.GetAll().Where(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId).ToListAsync();
+
+                                var readyMss = readyMs.Select(r => r.Id);
+
+                                var readyMBs = await _repositoryReadyMBilld.GetAll().Where(r => readyMss.Contains(r.ReadyMBillId))
+                                    .Select(r => new { r.PartNoId, r.Qty, r.SendQty, r.ReturnQty })
+                                    .ToListAsync();
+
+                                if (readyMBs.GroupBy(r => r.PartNoId).Select(r => new { r.Key, Qty = r.Sum(s => s.SendQty) - r.Sum(s => s.Qty) }).Where(r => r.Qty > 0).FirstOrDefault() != null)
+                                {
+                                    foreach (var item in readyMs)
+                                    {
+                                        item.ReadyMStatus = ReadyMStatus.Finish;
+                                    }
+                                }
 
                                 // 如果为首料进行小车闪灯
                                 if (sendtemp.FisrtStorageLocationId != null && sendtemp.FisrtStorageLocationId.Length > 0)
@@ -762,7 +795,10 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 var readySlotSupply = await _repositoryReadySlot.FirstOrDefaultAsync(r => r.ReReadyMBillId == supplytemp.ReReadyMBillId && r.SendPartNoId == reel.PartNoId);
 
                                 // 料站表发料数量改变
-                                readySlotSupply.SendQty += reel.Qty;
+                                if (readySlotSupply != null)
+                                {
+                                    readySlotSupply.SendQty += reel.Qty;
+                                }
 
                                 // 改变料盘备料关联
                                 reel.ReadyMBillDetailedId = readyBillDSupply.Id;
@@ -779,8 +815,16 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 // 灭灯
                                 shelfUp.LightState = LightState.Off;
 
-                                resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlotSupply.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlotSupply.Machine + "]\r\nTable: [" + readySlotSupply.Table + "]\r\n站位: [" +
-                                    readySlotSupply.SlotName + "]\r\n边别: [" + (readySlotSupply.Side == SideType.L ? "L" : "R") + "]";
+                                if (readySlotSupply != null)
+                                {
+                                    resDto.Msg = "站位信息: \r\n" + "面别: [" + (readySlotSupply.BoardSide == SideType.B ? "S" : "C") + "]\r\n机器: [" + readySlotSupply.Machine + "]\r\nTable: [" + readySlotSupply.Table + "]\r\n站位: [" +
+                                                                        readySlotSupply.SlotName + "]\r\n边别: [" + (readySlotSupply.Side == SideType.L ? "L" : "R") + "]";
+                                }
+                                else
+                                {
+                                    resDto.Msg = "发料成功";
+                                }
+
 
                                 // 灭小灯和塔灯
                                 LightService.LightOrder(new List<StorageLight>() { new StorageLight() { ContinuedTime = 10, LightColor = shelfUp.LightColor, LightOrder = 0, MainBoardId = shelfUp.MainBoardId, RackPositionId = shelfUp.PositionId } });

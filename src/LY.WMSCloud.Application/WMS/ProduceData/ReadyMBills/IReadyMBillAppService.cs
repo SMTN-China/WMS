@@ -14,6 +14,8 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
         Task CancelReadyM(string readyMid);
 
+        Task CloseReadyM(string readyMid);
+
         Task<ReadyMResultDto> ReadyFirstM(ReadyMDto readyM);
 
         Task<bool> BatchInsOrUpdate(ICollection<RBBatchReadyMBillDto> input);

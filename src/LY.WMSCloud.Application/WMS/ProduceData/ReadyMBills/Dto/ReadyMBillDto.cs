@@ -46,6 +46,8 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto
         /// 优先级
         /// </summary>
         public int Priority { get; set; }
+        public ReadyMStatus ReadyMStatus { get; set; }
+
 
         /// <summary>
         /// 交付时间

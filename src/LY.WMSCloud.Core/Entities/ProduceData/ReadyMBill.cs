@@ -44,6 +44,12 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// 备料方式
         /// </summary>
         public ReadyMType ReadyMType { get; set; }
+
+        /// <summary>
+        /// 发料状态
+        /// </summary>
+        public ReadyMStatus ReadyMStatus { get; set; }
+
         /// <summary>
         /// 调拨方式
         /// </summary>
@@ -102,6 +108,22 @@ namespace LY.WMSCloud.Entities.ProduceData
         ALL = 0,
         JIT,
         Other
+    }
+
+    public enum ReadyMStatus
+    {
+        /// <summary>
+        /// 新建
+        /// </summary>
+        Ready,
+        /// <summary>
+        /// 发料中
+        /// </summary>
+        InIssUe,
+        /// <summary>
+        /// 已完成
+        /// </summary>
+        Finish
     }
 }
 
