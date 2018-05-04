@@ -143,10 +143,19 @@
         public const string Pages_ReelSendTemps_Update = "Pages.ReelSendTemps.Update";
         public const string Pages_ReelSendTemps_Delete = "Pages.ReelSendTemps.Delete";
 
-        public const string Pages_ReelShortTemps = "Pages.ReelShortTemps";
+        //public const string Pages_ReelShortTemps = "Pages.ReelShortTemps";
         public const string Pages_ReelShortTemps_Add = "Pages.ReelShortTemps.Create";
         public const string Pages_ReelShortTemps_Update = "Pages.ReelShortTemps.Update";
         public const string Pages_ReelShortTemps_Delete = "Pages.ReelShortTemps.Delete";
 
+        // 报表
+        public const string Pages_ReelSendLog = "Pages.ReelSendLog";
+        public const string Pages_ReelReceivedLog = "Pages.ReelReceivedLog";
+        public const string Pages_ReelGroup = "Pages.ReelGroup";
+        public const string Pages_SendGroup = "Pages.SendGroup";
+
+        // 仪表盘
+        public const string Pages_ReadyKanBan = "Pages.ReadyKanBan";
+        public const string Pages_MainKanBan = "Pages.MainKanBan";
     }
 }

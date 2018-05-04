@@ -691,7 +691,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                     .Select(r => new { r.PartNoId, r.Qty, r.SendQty, r.ReturnQty })
                                     .ToListAsync();
 
-                                if (readyMBs.GroupBy(r => r.PartNoId).Select(r => new { r.Key, Qty = r.Sum(s => s.SendQty) - r.Sum(s => s.Qty) }).Where(r => r.Qty > 0).FirstOrDefault() != null)
+                                if (readyMBs.GroupBy(r => r.PartNoId).Select(r => new { r.Key, Qty = r.Sum(s => s.SendQty) - r.Sum(s => s.Qty) }).Where(r => r.Qty < 0).FirstOrDefault() == null)
                                 {
                                     foreach (var item in readyMs)
                                     {
@@ -741,6 +741,11 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 #endregion
                                 break;
                             case AllocationType.Return: // 退料
+                                var readyBillDreturn = await _repositoryReadyMBilld.FirstOrDefaultAsync(reel.ReadyMBillDetailedId);
+                                if (readyBillDreturn != null)
+                                {
+                                    readyBillDreturn.ReturnQty = inputDto.ReturnReelQty;
+                                }
                                 break;
                             case AllocationType.Received: // 收料
 
@@ -913,6 +918,12 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
             resDto.Reel = ObjectMapper.Map<ReelDto>(reel);
 
+            if (inputDto.ReturnReelQty > 0)
+            {
+                reel.Qty = inputDto.ReturnReelQty;
+                resDto.Reel.Qty = inputDto.ReturnReelQty;
+            }
+
             return resDto;
         }
 
@@ -994,6 +1005,28 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                 }
             }
 
+        }
+        [HttpPost]
+        public async Task<ReelMoveResDto> GetIsReturnReel(ReelMoveDto inputDto)
+        {
+            var res = new ReelMoveResDto();
+
+
+            // 条码解析
+            var reelDtoObj = await _barCodeAnalysisAppService.Analysis(new BaseData.BarCodeAnalysiss.Dto.AnalysisDto() { BarCode = inputDto.BarCode, DtoName = "ReelDto" });
+            if (!reelDtoObj.Success)
+            {
+                res.Msg = reelDtoObj.Msg;
+                throw new LYException(res.Msg);
+            }
+            ReelDto reeldto = reelDtoObj.Result as ReelDto;
+            res.Reel = reeldto;
+            var reel = await _repository.FirstOrDefaultAsync(reeldto.Id);
+            if (reel != null)
+            {
+                res.IsContinuity = reel.ReadyMBillId != null;
+            }
+            return res;
         }
     }
 }

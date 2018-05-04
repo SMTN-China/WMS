@@ -247,16 +247,16 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
 
 
             // 灯塔
-            var mains = lights.GroupBy(r => new AllLight
+            var mains = lights.GroupBy(r =>new
             {
-                LightOrder = 0,
-                MainBoardId = r.MainBoardId,
+                LightOrder = 1,
+                r.MainBoardId,
                 LightColor = lightColor
             }).Select(r => r.Key).ToList();
 
             LightService.HouseOrder(lights.Select(r => new HouseLight()
             {
-                LightOrder = 0,
+                LightOrder = 1,
                 MainBoardId = r.MainBoardId,
                 HouseLightSide = 0,
                 LightColor = lightColor
@@ -264,7 +264,7 @@ namespace LY.WMSCloud.WMS.BaseData.StorageLocations
 
             LightService.HouseOrder(lights.Select(r => new HouseLight()
             {
-                LightOrder = 0,
+                LightOrder = 1,
                 MainBoardId = r.MainBoardId,
                 HouseLightSide = 1,
                 LightColor = lightColor

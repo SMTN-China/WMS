@@ -84,6 +84,12 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             input.WorkBilQtys = string.Join('|', input.WorkBills.Select(r => r.Id + ":" + r.Qty).Distinct().ToList());
             input.Linestr = string.Join('|', input.WorkBills.Select(r => r.LineId).Distinct().ToList());
 
+            if (input.ReelMoveMethodId == null || input.ReelMoveMethodId == "")
+            {
+                var readyLossQty = (await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "reelMoveMethodId")).Value;
+                input.ReelMoveMethodId = readyLossQty;
+            }
+
             switch (input.MakeDetailsType)
             {
                 case MakeDetailsType.BOM:
@@ -142,6 +148,11 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             input.Productstr = string.Join('|', input.WorkBills.Select(r => r.ProductId).Distinct().ToList());
             input.WorkBilQtys = string.Join('|', input.WorkBills.Select(r => r.Id + ":" + r.Qty).Distinct().ToList());
             input.Linestr = string.Join('|', input.WorkBills.Select(r => r.LineId).Distinct().ToList());
+            if (input.ReelMoveMethodId == null || input.ReelMoveMethodId == "")
+            {
+                var readyLossQty = (await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "reelMoveMethodId")).Value;
+                input.ReelMoveMethodId = readyLossQty;
+            }
             //// 删除工单明细
             //foreach (var item in _readyMBillWorkBillMap.GetAll().Where(r => r.ReadyMBillId == input.Id).ToList())
             //{
@@ -1071,7 +1082,17 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 RackPositionId = s.RackPositionId
             }).ToList();
 
-            LightService.LightOrder(simlights);
+            // LightService.LightOrder(simlights);
+
+            var allLightOrder = simlights.GroupBy(s => new { s.MainBoardId, s.LightOrder, s.LightColor }).Select(s => new AllLight()
+            {
+                LightColor = s.Key.LightColor,
+                LightOrder = s.Key.LightOrder,
+                MainBoardId = s.Key.MainBoardId
+            }).ToList();
+
+            // 单颜色全灭
+            LightService.AllLightOrder(allLightOrder);
 
             // 灯塔
             var houselights = simlights.Where(r => r.MainBoardId.ToString().Length != 3).Select(l => new
@@ -1143,7 +1164,17 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 RackPositionId = s.RackPositionId
             }).ToList();
 
-            LightService.LightOrder(simlights);
+            // LightService.LightOrder(simlights);
+
+            var allLightOrder = simlights.GroupBy(s => new { s.MainBoardId, s.LightOrder, s.LightColor }).Select(s => new AllLight()
+            {
+                LightColor = s.Key.LightColor,
+                LightOrder = s.Key.LightOrder,
+                MainBoardId = s.Key.MainBoardId
+            }).ToList();
+
+            // 单颜色全灭
+            LightService.AllLightOrder(allLightOrder);
 
             // 灯塔
             var houselights = simlights.Where(r => r.MainBoardId.ToString().Length != 3).Select(l => new

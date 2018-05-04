@@ -30,5 +30,6 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
         Task<GetReceivedsResult> GetReceiveds(ReelMoveDto inputDto);
 
+        Task<ReelMoveResDto> GetIsReturnReel(ReelMoveDto inputDto);
     }
 }

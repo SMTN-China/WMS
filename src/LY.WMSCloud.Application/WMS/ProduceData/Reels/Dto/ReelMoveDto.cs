@@ -19,5 +19,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels.Dto
         public bool IsContinuity { get; set; }
 
         public bool IsReturnReel { get; set; }
+
+        public int ReturnReelQty { get; set; }
     }
 }
