@@ -37,7 +37,7 @@ namespace LY.WMSCloud.EntityFrameworkCore
         public virtual DbSet<ReelMoveMethod> ReelAllocationMethods { set; get; }
         public virtual DbSet<WorkBill> WorkBills { set; get; }
 
-        public virtual DbSet<ReadySlot> ReadySlots { set; get; }
+        //public virtual DbSet<ReadySlot> ReadySlots { set; get; }
 
         public virtual DbSet<ReelSupplyTemp> ReelSupplyTemps { set; get; }
 
@@ -80,7 +80,7 @@ namespace LY.WMSCloud.EntityFrameworkCore
             modelBuilder.Entity<ReelSendTemp>(b => b.ToTable("WMSReelSendTemp").Property(t => t.Id).HasMaxLength(60));
             modelBuilder.Entity<ReelShortTemp>(b => b.ToTable("WMSReelShortTemp").Property(t => t.Id).HasMaxLength(36));
             modelBuilder.Entity<ReelSupplyTemp>(b => b.ToTable("WMSReelSupplyTemp").Property(t => t.Id).HasMaxLength(60));
-            modelBuilder.Entity<ReadySlot>(b => b.ToTable("WMSReadySlot").Property(t => t.Id).HasMaxLength(36));
+            //modelBuilder.Entity<ReadySlot>(b => b.ToTable("WMSReadySlot").Property(t => t.Id).HasMaxLength(36));
             modelBuilder.Entity<StorageArea>(b => b.ToTable("WMSStorageArea").Property(t => t.Id).HasMaxLength(30));
             modelBuilder.Entity<PrintReel>(b => b.ToTable("WMSPrintReel").Property(t => t.Id).HasMaxLength(30));
 
@@ -116,8 +116,6 @@ namespace LY.WMSCloud.EntityFrameworkCore
                 b.Property(t => t.Id).HasMaxLength(36);
 
                 b.HasOne(pt => pt.ReelMoveMethod).WithMany(t => t.OutStorages).HasForeignKey(pt => pt.ReelMoveMethodId);
-
-                b.HasOne(pt => pt.Storage).WithMany(t => t.ReelMoveMethods).HasForeignKey(pt => pt.StorageId);
             }
 
            );

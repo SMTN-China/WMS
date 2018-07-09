@@ -2,7 +2,6 @@
 using Abp.Domain.Entities;
 using Abp.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.Lolita;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,61 +19,6 @@ namespace LY.WMSCloud.EntityFrameworkCore.Repositories
     {
         public WMSRepositories(IDbContextProvider<WMSCloudDbContext> dbContextProvider) : base(dbContextProvider)
         {
-        }
-
-        public int BatchDelete(Expression<Func<TEntity, bool>> predicate)
-        {
-            return GetAll().Where(predicate).Delete();
-        }
-
-        public Task<int> BatchDeleteAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            return GetAll().Where(predicate).DeleteAsync();
-        }
-
-        public int BatchUpdate(Expression<Func<TEntity, bool>> predicate, params LYParameter<TEntity, object>[] wmsParameters)
-        {
-            if (wmsParameters.Length > 0)
-            {
-                LolitaSetting<TEntity> lolitaSetting = null;
-                foreach (var batchUpdateConditiong in wmsParameters)
-                {
-                    if (lolitaSetting == null)
-                    {
-                        lolitaSetting = GetAll().Where(predicate).SetField(batchUpdateConditiong.Property).WithValue(batchUpdateConditiong.Value);
-                    }
-                    else
-                    {
-                        lolitaSetting = lolitaSetting.SetField(batchUpdateConditiong.Property).WithValue(batchUpdateConditiong.Value);
-                    }
-                }
-
-                return lolitaSetting.Update();
-            }
-
-            return 0;
-        }
-
-        public Task<int> BatchUpdateAsync(Expression<Func<TEntity, bool>> predicate, params LYParameter<TEntity, object>[] wmsParameters)
-        {
-            if (wmsParameters.Length > 0)
-            {
-                LolitaSetting<TEntity> lolitaSetting = null;
-                foreach (var batchUpdateConditiong in wmsParameters)
-                {
-                    if (lolitaSetting == null)
-                    {
-                        lolitaSetting = GetAll().Where(predicate).SetField(batchUpdateConditiong.Property).WithValue(batchUpdateConditiong.Value);
-                    }
-                    else
-                    {
-                        lolitaSetting = lolitaSetting.SetField(batchUpdateConditiong.Property).WithValue(batchUpdateConditiong.Value);
-                    }
-                }
-
-                return lolitaSetting.UpdateAsync();
-            }
-            return Task.Factory.StartNew(() => 0);
         }
 
         public IQueryable<TEntity> DynamicQuery(PagedResultRequestInput input)

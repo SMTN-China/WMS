@@ -33,16 +33,11 @@ namespace LY.WMSCloud.Entities.StorageData
         /// 相关人员
         /// </summary>
         public int? AboutUserId { get; set; }
-        public User AboutUser { get; set; }
+        public virtual User AboutUser { get; set; }
         /// <summary>
         /// 来料方式
         /// </summary>
         public IncomingMethod IncomingMethod { get; set; }
-
-        /// <summary>
-        /// 调拨方式
-        /// </summary>
-        public ICollection<RMMStorageMap> ReelMoveMethods { get; set; }
     }
 
 }

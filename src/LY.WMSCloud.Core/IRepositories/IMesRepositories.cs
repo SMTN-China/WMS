@@ -15,32 +15,6 @@ namespace LY.WMSCloud
         where TEntity : class, IEntity<TPrimaryKey>, new()
     {
         /// <summary>
-        /// 不用查询实体的批量删除
-        /// </summary>
-        /// <param name="predicate">查询表达式</param>
-        /// <returns></returns>
-        int BatchDelete(Expression<Func<TEntity, bool>> predicate);
-        /// <summary>
-        /// 不用查询实体的异步的批量删除
-        /// </summary>
-        /// <param name="predicate">查询表达式</param>
-        /// <returns>异步任务</returns>
-        Task<int> BatchDeleteAsync(Expression<Func<TEntity, bool>> predicate);
-        /// <summary>
-        /// 不用查询实体的批量更新
-        /// </summary>
-        /// <param name="predicate">查询表达式</param>
-        /// <param name="wmsParameters">更新内容</param>
-        /// <returns>受影响的行</returns>
-        int BatchUpdate(Expression<Func<TEntity, bool>> predicate, params LYParameter<TEntity, object>[] wmsParameters);
-        /// <summary>
-        /// 不用查询实体的异步批量更新
-        /// </summary>
-        /// <param name="predicate">查询表达式</param>
-        /// <param name="wmsParameters">更新内容</param>
-        /// <returns>受影响的行</returns>
-        Task<int> BatchUpdateAsync(Expression<Func<TEntity, bool>> predicate, params LYParameter<TEntity, object>[] wmsParameters);
-        /// <summary>
         /// 动态查询
         /// </summary>
         /// <param name="input">查询条件</param>

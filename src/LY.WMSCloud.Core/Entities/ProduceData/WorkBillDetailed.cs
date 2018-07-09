@@ -16,7 +16,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
 
         public string WorkBillId { get; set; }
-        public WorkBill WorkBill { get; set; }
+        public virtual WorkBill WorkBill { get; set; }
 
         /// <summary>
         /// 物料编码
@@ -25,7 +25,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
         public string PartNoId { get; set; }
 
-        public MPN PartNo { get; set; }
+        public virtual MPN PartNo { get; set; }
 
         /// <summary>
         /// 需求数量
@@ -39,13 +39,13 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
 
         public string BOMId { get; set; }
-        public BOM BOM { get; set; }
+        public virtual BOM BOM { get; set; }
 
         /// <summary>
         /// 站位Id
         /// </summary>
         public string SlotId { get; set; }
-        public Slot Slot { get; set; }
+        public virtual Slot Slot { get; set; }
 
         /// <summary>
         /// 退料数量

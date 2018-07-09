@@ -14,6 +14,7 @@ using Abp.Extensions;
 using LY.WMSCloud.Authentication.JwtBearer;
 using LY.WMSCloud.Configuration;
 using LY.WMSCloud.Identity;
+using System.Reflection;
 
 #if FEATURE_SIGNALR
 using Microsoft.AspNet.SignalR;
@@ -44,7 +45,9 @@ namespace LY.WMSCloud.Web.Host.Startup
             // MVC
             services.AddMvc(
                 options => options.Filters.Add(new CorsAuthorizationFilterFactory(_defaultCorsPolicyName))
-            );
+            ).AddJsonOptions(
+            options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+        );
 
             IdentityRegistrar.Register(services);
             AuthConfigurer.Configure(services, _appConfiguration);
@@ -148,11 +151,18 @@ namespace LY.WMSCloud.Web.Host.Startup
             // Enable middleware to serve generated Swagger as a JSON endpoint
             app.UseSwagger();
             // Enable middleware to serve swagger-ui assets (HTML, JS, CSS etc.)
+            //app.UseSwaggerUI(options =>
+            //{
+            //    options.InjectOnCompleteJavaScript("/swagger/ui/abp.js");
+            //    options.InjectOnCompleteJavaScript("/swagger/ui/on-complete.js");
+            //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "WMSCloud API V1");
+            //}); // URL: /swagger
+
             app.UseSwaggerUI(options =>
             {
-                options.InjectOnCompleteJavaScript("/swagger/ui/abp.js");
-                options.InjectOnCompleteJavaScript("/swagger/ui/on-complete.js");
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "WMSCloud API V1");
+                options.IndexStream = () => Assembly.GetExecutingAssembly()
+                    .GetManifestResourceStream("LY.WMSCloud.Web.Host.wwwroot.swagger.ui.index.html");
             }); // URL: /swagger
         }
 

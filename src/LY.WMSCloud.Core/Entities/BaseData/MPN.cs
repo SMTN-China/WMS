@@ -67,18 +67,16 @@ namespace LY.WMSCloud.Entities.BaseData
         /// </summary>
         [StringLength(36)]
         public string CustomerId { get; set; }
-        public Customer Customer { get; set; }
         /// <summary>
         /// 默认注册仓库代码
         /// </summary>
         [StringLength(36)]  
         public string RegisterStorageId { get; set; }
-        public Storage RegisterStorage { get; set; }
 
         /// <summary>
         /// 物料所属区域
         /// </summary>
-        public ICollection<MPNStorageAreaMap> StorageAreas { get; set; }
+        public virtual ICollection<MPNStorageAreaMap> StorageAreas { get; set; }
     }
 
     public enum MPNHierarchy

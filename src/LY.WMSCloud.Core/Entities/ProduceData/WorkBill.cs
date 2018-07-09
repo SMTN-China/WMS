@@ -17,7 +17,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
         public string ProductId { get; set; }
 
-        public MPN Product { get; set; }
+        public virtual MPN Product { get; set; }
 
         /// <summary>
         /// 线别
@@ -25,7 +25,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
         public string LineId { get; set; }
 
-        public Line Line { get; set; }
+        public virtual Line Line { get; set; }
 
         /// <summary>
         /// 备注
@@ -36,7 +36,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 备料单关联
         /// </summary>
-        public ICollection<ReadyMBillWorkBillMap> ReadyMBills { get; set; }
+        public virtual ICollection<ReadyMBillWorkBillMap> ReadyMBills { get; set; }
 
         /// <summary>
         /// 工单套数

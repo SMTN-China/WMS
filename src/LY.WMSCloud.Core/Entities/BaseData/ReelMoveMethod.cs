@@ -25,14 +25,14 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 移除仓集合
         /// </summary>
-        public ICollection<RMMStorageMap> OutStorages { get; set; }
+        public virtual ICollection<RMMStorageMap> OutStorages { get; set; }
         /// <summary>
         /// 移入仓
         /// </summary>
         [StringLength(36)]
         public string InStorageId { get; set; }
         [StringLength(36)]
-        public Storage InStorage { get; set; }
+        public virtual Storage InStorage { get; set; }
 
         /// <summary>
         /// 操作合集

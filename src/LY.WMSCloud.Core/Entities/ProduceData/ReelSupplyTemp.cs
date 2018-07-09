@@ -18,7 +18,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string ReReadyMBillId { get; set; }
-        public ReadyMBill ReReadyMBill { get; set; }
+        public virtual ReadyMBill ReReadyMBill { get; set; }
 
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string ReadyMBillDetailedId { get; set; }
-        public ReadyMBillDetailed ReadyMBillDetailed { get; set; }
+        public virtual ReadyMBillDetailed ReadyMBillDetailed { get; set; }
 
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string StorageLocationId { get; set; }
-        public StorageLocation StorageLocation { get; set; }
+        public virtual StorageLocation StorageLocation { get; set; }
 
 
         /// <summary>
@@ -42,14 +42,14 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string BOMId { get; set; }
-        public BOM BOM { get; set; }
+        public virtual BOM BOM { get; set; }
 
 
         /// <summary>
         /// 站位Id
         /// </summary>
         public string SlotId { get; set; }
-        public Slot Slot { get; set; }
+        public virtual Slot Slot { get; set; }
 
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string PartNoId { get; set; }
-        public MPN PartNo { get; set; }
+        public virtual MPN PartNo { get; set; }
 
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string ReelMoveMethodId { get; set; }
-        public ReelMoveMethod ReelMoveMethod { get; set; }
+        public virtual ReelMoveMethod ReelMoveMethod { get; set; }
         [StringLength(36)]
 
         public string FisrtStorageLocationId { get; set; }

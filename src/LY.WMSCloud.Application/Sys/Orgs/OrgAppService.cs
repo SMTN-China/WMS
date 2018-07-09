@@ -38,7 +38,7 @@ namespace LY.WMSCloud.Sys
             CheckDeletePermission();
 
             // 删除组织下属角色
-            RoleRepositories.BatchDelete(r => r.OrgId == input.Id);
+            RoleRepositories.Delete(r => r.OrgId == input.Id);
 
             return base.Delete(input);
         }

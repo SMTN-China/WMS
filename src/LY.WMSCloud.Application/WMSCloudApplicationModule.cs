@@ -14,6 +14,7 @@ namespace LY.WMSCloud
         public override void PreInitialize()
         {
             Configuration.Authorization.Providers.Add<WMSCloudAuthorizationProvider>();
+            Configuration.Settings.Providers.Add<WmsSettingProvider>();
         }
 
         public override void Initialize()

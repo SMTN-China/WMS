@@ -20,7 +20,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string PartNoId { get; set; }
-        public MPN PartNo { get; set; }
+        public virtual MPN PartNo { get; set; }
 
         /// <summary>
         /// 数量
@@ -56,7 +56,6 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string ReceivedReelBillId { get; set; }
-        public ReceivedReelBill ReceivedReelBill { get; set; }
 
         /// <summary>
         /// Po

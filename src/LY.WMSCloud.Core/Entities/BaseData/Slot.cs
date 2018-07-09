@@ -14,14 +14,12 @@ namespace LY.WMSCloud.Entities.BaseData
         /// </summary>
         [StringLength(36)]
         public string ProductId { get; set; }
-        public MPN Product { get; set; }
 
         /// <summary>
         /// 物料代码
         /// </summary>
         [StringLength(36)]
         public string PartNoId { get; set; }
-        public MPN PartNo { get; set; }
 
         /// <summary>
         /// 用量
@@ -38,7 +36,6 @@ namespace LY.WMSCloud.Entities.BaseData
         /// </summary>
         [StringLength(30)]
         public string LineId { get; set; }
-        public Line Line { get; set; }
 
         /// <summary>
         /// 版面

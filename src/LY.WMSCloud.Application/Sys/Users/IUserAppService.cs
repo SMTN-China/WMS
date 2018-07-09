@@ -18,5 +18,9 @@ namespace LY.WMSCloud.Users
         Task<ICollection<RoleDto>> GetRole(long id);
 
         Task<ICollection<OrgDto>> GetOrgRole(long id);
+
+        Task<UserDto> ChangePwd(string oldPwd, string newPwd);
+
+        Task<UserDto> ChangeUserInfoAsync(UserDto user);
     }
 }

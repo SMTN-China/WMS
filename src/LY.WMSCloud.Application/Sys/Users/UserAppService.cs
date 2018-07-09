@@ -18,6 +18,8 @@ using LY.WMSCloud.Users.Dto;
 using LY.WMSCloud.Entities;
 using Abp.Linq.Extensions;
 using LY.WMSCloud.Sys.Orgs.Dto;
+using Microsoft.AspNetCore.Mvc;
+using Abp.MultiTenancy;
 
 namespace LY.WMSCloud.Users
 {
@@ -29,6 +31,10 @@ namespace LY.WMSCloud.Users
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IWMSRepositories<User, long> _mesRepositories;
         private readonly IRepository<Org> _orgRepository;
+        private readonly UserRegistrationManager _userRegistrationManager;
+        private readonly LogInManager _logInManager;
+        private readonly ITenantCache _tenantCache;
+
 
         public UserAppService(
             IRepository<User, long> repository,
@@ -37,15 +43,23 @@ namespace LY.WMSCloud.Users
             IRepository<Role> roleRepository,
             IRepository<Org> orgRepository,
             IWMSRepositories<User, long> mesRepositories,
-            IPasswordHasher<User> passwordHasher)
+            LogInManager logInManager,
+            IPasswordHasher<User> passwordHasher,
+            ITenantCache tenantCache,
+            UserRegistrationManager userRegistrationManager
+            )
+
             : base(mesRepositories)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
+            _tenantCache = tenantCache;
             _mesRepositories = mesRepositories;
+            _userRegistrationManager = userRegistrationManager;
             _orgRepository = orgRepository;
+            _logInManager = logInManager;
         }
 
         public override async Task<UserDto> Create(CreateUserDto input)
@@ -175,5 +189,57 @@ namespace LY.WMSCloud.Users
 
             return ObjectMapper.Map<List<OrgDto>>(uOrgRoles);
         }
+
+        public async Task<UserDto> ChangePwd(string oldPwd, string newPwd)
+        {
+            // 获取当前用户
+            var user = await UserManager.FindByIdAsync(AbpSession.UserId.ToString());
+
+            var loginResult = await _logInManager.LoginAsync(user.UserName, oldPwd, GetTenancyNameOrNull());
+
+            // 校验旧密码是否正确
+            if (loginResult.Identity == null)
+            {
+                throw new LYException("旧密码输入错误");
+            }
+
+            var res = await UserManager.ChangePasswordAsyncNoValid(user, newPwd);
+            if (res.Succeeded)
+            {
+                return ObjectMapper.Map<UserDto>(loginResult.User);
+            }
+            else
+            {
+                throw new LYException(res.Errors);
+            }
+        }
+        private string GetTenancyNameOrNull()
+        {
+            if (!AbpSession.TenantId.HasValue)
+            {
+                return null;
+            }
+
+            return _tenantCache.GetOrNull(AbpSession.TenantId.Value)?.TenancyName;
+        }
+
+        [HttpPut]
+        public async Task<UserDto> ChangeUserInfoAsync(UserDto input)
+        {
+
+            var user = await _userManager.GetUserByIdAsync(input.Id);
+
+            MapToEntity(input, user);
+
+            CheckErrors(await _userManager.UpdateAsync(user));
+
+            if (input.RoleNames != null)
+            {
+                CheckErrors(await _userManager.SetRoles(user, input.RoleNames));
+            }
+
+            return ObjectMapper.Map<UserDto>(user);
+        }
+
     }
 }

@@ -38,7 +38,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
         readonly IWMSRepositories<Setting, long> _repositoryT;
         readonly IWMSRepositories<ReelSendTemp, string> _repositoryRST;
         readonly IWMSRepositories<ReelSupplyTemp, string> _repositoryReelSupplyTemp;
-        readonly IWMSRepositories<ReadySlot, string> _repositoryReadySlot;
+        // readonly IWMSRepositories<ReadySlot, string> _repositoryReadySlot;
 
         readonly LightService LightService;
         readonly IWMSRepositories<ReceivedReelBill, string> _repositoryrrb;
@@ -51,7 +51,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             IWMSRepositories<ReelMoveLog, string> repositoryReelMoveLog,
             IWMSRepositories<ReadyMBillDetailed, string> repositoryReadyMBilld,
             IWMSRepositories<ReceivedReelBill, string> repositoryrrb,
-            IWMSRepositories<ReadySlot, string> repositoryReadySlot,
+            // IWMSRepositories<ReadySlot, string> repositoryReadySlot,
             IWMSRepositories<ReadyMBill, string> repositoryReadyMBill,
             IWMSRepositories<StorageArea, string> repositorysStorageA,
             IWMSRepositories<MPNStorageAreaMap, string> repositorysMPNA,
@@ -74,7 +74,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
             _repositoryrrb = repositoryrrb;
             _repositorysStorageA = repositorysStorageA;
             _repositoryT = repositoryT;
-            _repositoryReadySlot = repositoryReadySlot;
+            // _repositoryReadySlot = repositoryReadySlot;
             LightService = lightService;
             _repositoryReadyMBill = repositoryReadyMBill;
             _repositorySlot = repositorySlot;
@@ -605,6 +605,14 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 // 清除双向绑定
                                 shelfUp.ReelId = null;
                                 reel.StorageLocationId = null;
+                                LightService.LightOrder(new List<StorageLight>() { new StorageLight()
+                                {
+                                    ContinuedTime = 10,
+                                    LightOrder = 0,
+                                    MainBoardId = shelfUp.MainBoardId,
+                                    LightColor=shelfUp.LightColor,
+                                    RackPositionId = shelfUp.PositionId
+                                } });
                                 #endregion
                                 break;
                             case AllocationType.Send: // 发料
@@ -618,7 +626,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                     throw new LYException(resDto.Msg);
                                 }
                                 // 查询挑料料站表行数据
-                                var readySlot = await _repositoryReadySlot.FirstOrDefaultAsync(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId && r.SlotId == sendtemp.SlotId);
+                                var readySlot = sendtemp.ReadyMBillDetailed.Slot;
 
                                 if (sendtemp.IsSend)
                                 {
@@ -644,12 +652,6 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 // 添加发料数量
                                 readyBillD.SendQty += reel.Qty;
 
-                                // 料站表发料数量改变
-                                if (readySlot != null)
-                                {
-                                    readySlot.SendQty += reel.Qty;
-                                }
-
                                 // 改变料盘备料关联
                                 reel.ReadyMBillDetailedId = readyBillD.Id;
                                 reel.ReadyMBillId = readyBillD.ReadyMBillId;
@@ -667,7 +669,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 shelfUp.LightState = LightState.Off;
 
                                 // 如果发料完成,删除临时表
-                                if (_repositoryRST.GetAll().Where(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId && r.IsSend == false).Count() == 0)
+                                if (_repositoryRST.GetAll().Where(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId && r.IsSend == false).Count() == 1)
                                 {
                                     await _repositoryRST.DeleteAsync(r => r.ReReadyMBillId == sendtemp.ReReadyMBillId);
                                 }
@@ -691,7 +693,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                     .Select(r => new { r.PartNoId, r.Qty, r.SendQty, r.ReturnQty })
                                     .ToListAsync();
 
-                                if (readyMBs.GroupBy(r => r.PartNoId).Select(r => new { r.Key, Qty = r.Sum(s => s.SendQty) - r.Sum(s => s.Qty) }).Where(r => r.Qty < 0).FirstOrDefault() == null)
+                                if (readyMBs.GroupBy(r => r.PartNoId).Select(r => new { r.Key, Qty = r.Sum(s => s.SendQty) - r.Sum(s => s.Qty) }).Where(r => r.Qty < 0).Count() == 1)
                                 {
                                     foreach (var item in readyMs)
                                     {
@@ -726,7 +728,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
                                 CurrentUnitOfWork.SaveChanges();
                                 // 大灯 可能需要修改
-                                var lights = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off);
+                                var lights = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off && s.LightColor == shelfUp.LightColor);
                                 if (lights.Count() == 0)
                                 {
                                     LightService.HouseOrder(new List<HouseLight>() { new HouseLight()
@@ -797,13 +799,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                                 readyBillDSupply.SendQty += reel.Qty;
 
                                 // 查询挑料料站表行数据
-                                var readySlotSupply = await _repositoryReadySlot.FirstOrDefaultAsync(r => r.ReReadyMBillId == supplytemp.ReReadyMBillId && r.SendPartNoId == reel.PartNoId);
-
-                                // 料站表发料数量改变
-                                if (readySlotSupply != null)
-                                {
-                                    readySlotSupply.SendQty += reel.Qty;
-                                }
+                                var readySlotSupply = readyBillDSupply.Slot;                                
 
                                 // 改变料盘备料关联
                                 reel.ReadyMBillDetailedId = readyBillDSupply.Id;
@@ -836,7 +832,7 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
 
                                 CurrentUnitOfWork.SaveChanges();
                                 // 大灯 可能需要修改
-                                var lightssupply = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off);
+                                var lightssupply = _repositorysl.GetAll().Where(s => s.MainBoardId == shelfUp.MainBoardId && s.LightState != LightState.Off && s.LightColor == shelfUp.LightColor);
                                 if (lightssupply.Count() == 0)
                                 {
                                     LightService.HouseOrder(new List<HouseLight>() { new HouseLight()
@@ -875,6 +871,14 @@ namespace LY.WMSCloud.WMS.ProduceData.Reels
                         reelMoveLog.ReelId = reel.Id;
                         reelMoveLog.PartNoId = reel.PartNoId;
                         reelMoveLog.Qty = reel.Qty;
+                        LightService.LightOrder(new List<StorageLight>() { new StorageLight()
+                                {
+                                    ContinuedTime = 10,
+                                    LightOrder = 0,
+                                    MainBoardId = shelfL.MainBoardId,
+                                    LightColor=shelfL.LightColor,
+                                    RackPositionId = shelfL.PositionId
+                                } });
                         #endregion
                         break;
                     case AllocationType.Register:

@@ -23,7 +23,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]        
         public string PartNoId { get; set; }
-        public MPN PartNo { get; set; }
+        public virtual MPN PartNo { get; set; }
 
         /// <summary>
         /// 允许收料数量

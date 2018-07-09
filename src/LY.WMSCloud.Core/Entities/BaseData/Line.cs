@@ -22,13 +22,11 @@ namespace LY.WMSCloud.Entities.BaseData
         [StringLength(36)]
         public string ForCustomerMStorageId { get; set; }
 
-        public Storage ForCustomerMStorage { get; set; }
         /// <summary>
         /// 自购料仓代码
         /// </summary>
         [StringLength(36)]
         public string ForSelfMStorageId { get; set; }
-        public Storage ForSelfMStorage { get; set; }
 
     }
 }

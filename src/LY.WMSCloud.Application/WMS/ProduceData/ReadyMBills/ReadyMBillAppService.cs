@@ -19,7 +19,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
     public class ReadyMBillAppService : ServiceBase<ReadyMBill, ReadyMBillDto, string>, IReadyMBillAppService
     {
 
-        readonly IWMSRepositories<ReadyMBill, string> _repositoryReadyMBill;
+        readonly IWMSRepositories<ReadyMBill, string> _repository;
         readonly IWMSRepositories<ReadyMBillDetailed, string> _repositoryReadyMBilld;
         readonly IWMSRepositories<ReelMoveMethod, string> _repositoryRMM;
         readonly IWMSRepositories<WorkBill, string> _repositoryWorkBill;
@@ -29,7 +29,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
         readonly IWMSRepositories<ReelMoveLog, string> _reelMoveLog;
         readonly IWMSRepositories<MPN, string> _repositoryMPN;
         readonly IWMSRepositories<Line, string> _repositoryLine;
-        readonly IWMSRepositories<ReadySlot, string> _repositoryReadySlot;
+        //readonly IWMSRepositories<ReadySlot, string> _repositoryReadySlot;
         readonly IWMSRepositories<UPH, string> _repositoryUPH;
         readonly IWMSRepositories<Slot, string> _repositorySlot;
         readonly IWMSRepositories<StorageLocation, string> _repositorySL;
@@ -54,11 +54,11 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             IWMSRepositories<BOM, string> repositoryBOM,
             IWMSRepositories<ReelMoveLog, string> reelMoveLog,
              LightService lightService,
-            IWMSRepositories<ReadySlot, string> repositoryReadySlot,
+            //IWMSRepositories<ReadySlot, string> repositoryReadySlot,
             IWMSRepositories<Setting, long> repositoryT,
             IWMSRepositories<ReadyMBillWorkBillMap, string> readyMBillWorkBillMap) : base(repositoryReadyMBill)
         {
-            this._repositoryReadyMBill = repositoryReadyMBill;
+            this._repository = repositoryReadyMBill;
             _repositoryWorkBill = repositoryWorkBill;
             _readyMBillWorkBillMap = readyMBillWorkBillMap;
             _repositoryRMM = repositoryRMM;
@@ -74,7 +74,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             _repositoryT = repositoryT;
             _reelMoveLog = reelMoveLog;
             LightService = lightService;
-            _repositoryReadySlot = repositoryReadySlot;
+            // _repositoryReadySlot = repositoryReadySlot;
             _repositoryBOM = repositoryBOM;
         }
 
@@ -86,8 +86,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
             if (input.ReelMoveMethodId == null || input.ReelMoveMethodId == "")
             {
-                var readyLossQty = (await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "reelMoveMethodId")).Value;
-                input.ReelMoveMethodId = readyLossQty;
+                input.ReelMoveMethodId = await SettingManager.GetSettingValueForTenantAsync("reelMoveMethodId", AbpSession.TenantId.Value);
             }
 
             switch (input.MakeDetailsType)
@@ -235,7 +234,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
         public async Task<ICollection<ReadyMBillDto>> GetFollowReadyMBillKeyName(string keyName)
         {
-            var res = await _repositoryReadyMBill.GetAll().Where(r => r.Id.Contains(keyName)).Take(10).ToListAsync(); ;
+            var res = await _repository.GetAll().Where(r => r.Id.Contains(keyName)).Take(10).ToListAsync(); ;
 
             return ObjectMapper.Map<List<ReadyMBillDto>>(res);
         }
@@ -286,10 +285,10 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                     }
                     await CurrentUnitOfWork.SaveChangesAsync();
                     // 检查备料单
-                    var readyMBill = await _repositoryReadyMBill.FirstOrDefaultAsync(item.Key.Id);
+                    var readyMBill = await _repository.FirstOrDefaultAsync(item.Key.Id);
                     if (workBill == null)
                     {
-                        await _repositoryReadyMBill.InsertAsync(new ReadyMBill()
+                        await _repository.InsertAsync(new ReadyMBill()
                         {
                             Id = item.Key.Id,
                             IsActive = true,
@@ -364,7 +363,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             }
 
             // 判断本次备料单是否全部有备料记录
-            var rms = await _repositoryReadyMBill.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.Id) && r.ReReadyMBillId != null).Select(r => r.ReReadyMBillId).Distinct().ToListAsync();
+            var rms = await _repository.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.Id) && r.ReReadyMBillId != null).Select(r => r.ReReadyMBillId).Distinct().ToListAsync();
 
             // 有过备料记录的
             if (rms.Count > 1)
@@ -383,11 +382,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             // 备料返回信息
             ReadyMResultDto readyMResultDto = new ReadyMResultDto() { ReReadyMBillId = readyM.ReReadyMBill };
             //// 发料单信息
-            //List<ReelSendTemp> reelSendTempDtos = new List<ReelSendTemp>();
-            //// 缺料信息
-            //List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
-            // 获取灯配置,是单灯还是多灯
-
 
             var settinglightType = await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "lightIsRGB");
             var lightType = settinglightType == null ? 0 : int.Parse(settinglightType.Value);
@@ -431,11 +425,13 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 }
             }
 
+
+
             await _repositoryRSHT.DeleteAsync(r => r.ReReadyMBillId == readyM.ReReadyMBill);
 
             // 记账备料单
 
-            var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
+            var ReReadyMBill = await _repository.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
 
             // 调拨策略
             var ReelMoveMethod = await _repositoryRMM.GetAll().Where(rmm => rmm.Id == ReReadyMBill.ReelMoveMethodId).Include(s => s.OutStorages).FirstOrDefaultAsync();
@@ -447,11 +443,13 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             var mustFifoDay = int.Parse((await _repositoryT.FirstOrDefaultAsync(c => c.TenantId == AbpSession.TenantId && c.Name == "mustFifoDay")).Value);
 
             // 添加备料绑定关系
-
+            // 清除老灯
+            _repositoryRST.Delete(r => r.ReReadyMBillId == ReReadyMBill.Id);
+            _repositoryRSHT.Delete(r => r.ReReadyMBillId == ReReadyMBill.Id);
 
             foreach (var readyItemDto in readyM.ReadyMBills)
             {
-                var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
+                var readyItem = await _repository.FirstOrDefaultAsync(readyItemDto.Id);
                 readyItem.ReadyMStatus = ReadyMStatus.InIssUe;
                 readyItem.ReReadyMBillId = ReReadyMBill.Id;
             }
@@ -468,14 +466,14 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                      s.FirstOrDefault(sm => sm.ReadyMBillId == ReReadyMBill.Id).Id :
                      s.OrderBy(g => g.Id).FirstOrDefault().Id,
                 PartNoId = s.Key,
-                DemandQty = s.Sum(rm => rm.Qty),
+                DemandQty = s.Sum(rm => rm.Qty) + readyLossQty,
                 SendQty = s.Sum(rm => rm.SendQty),
                 ReturnQty = s.Sum(rm => rm.ReturnQty)
             }).ToList();
 
 
             // 查询沿用工单的余料详情,且剩余数大于0的发料详细
-            var followReadyBills = _repositoryReadyMBill.GetAll().Where(r => r.ReReadyMBillId == readyM.FollowReadyMBill.ReReadyMBillId);
+            var followReadyBills = _repository.GetAll().Where(r => r.ReReadyMBillId == readyM.FollowReadyMBill.ReReadyMBillId);
 
             var surplusReels = _repositoryReadyMBilld.GetAll().Where(re => followReadyBills.Select(r => r.Id).Contains(re.ReadyMBillId))
                 .GroupBy(r => r.PartNoId).Select(r => new
@@ -512,21 +510,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                     {
                         // 有沿用物料,进行物料沿用
                         // 模拟添加发料临时表, 且标记为已发
-                        //reelSendTempDtos.Add(new ReelSendTemp()
-                        //{
-                        //    IsActive = true,
-                        //    PartNoId = readyMB.PartNoId,
-                        //    DemandQty = readyMB.DemandQty,
-                        //    IsSend = true,
-                        //    Qty = surplusReel.Qty,
-                        //    SendQty = surplusReel.Qty,
-                        //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                        //    ReReadyMBillId = ReReadyMBill.Id,
-                        //    ReadyMBillDetailedId = readyMB.Id,
-                        //    SlotId = readyMB.SlotId,
-                        //    BOMId = readyMB.BOMId
-                        //});
-
                         await _repositoryRST.InsertAsync(new ReelSendTemp()
                         {
                             IsActive = true,
@@ -572,7 +555,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 // 本次挑料
 
                 // 如果需求没有用完 且站位没有发够 接着从库存挑料
-                if (nowDemandQty > 0)
+                if (nowDemandSendQty > 0)
                 {
                     // 查询MPN信息                           
                     var mpn = await _repositoryMPN.FirstOrDefaultAsync(readyMB.PartNoId);
@@ -591,7 +574,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
 
                     // 死循环挑料,库存料盘还有。且没挑够，且站位未发够
-                    while (reels.Count > 0 && nowDemandQty > 0)
+                    while (reels.Count > 0 && nowDemandSendQty > 0)
                     {
                         // 先挑选强制发料物料
                         var reel = reels.Where(r => r.MakeDate.AddDays(mpn.ShelfLife + r.ExtendShelfLife - mustFifoDay) > DateTime.Now).OrderBy(r => r.MakeDate).FirstOrDefault();
@@ -601,7 +584,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                             // 获取库存最大料盘数量
                             var maxQtyReel = reels.OrderBy(r => r.Qty).FirstOrDefault().Qty;
 
-                            if (nowDemandQty > maxQtyReel)
+                            if (nowDemandSendQty > maxQtyReel)
                             {
                                 // 当需求数大于库存最大料盘数量,按FIFO取同数量中物料
                                 reel = reels.Where(r => r.Qty == maxQtyReel).OrderBy(r => r.MakeDate).FirstOrDefault();
@@ -610,7 +593,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                             {
                                 // 当需求数小于库存最大料盘数量
                                 //  1、先查询库存数量大于需求数且差距最小物料
-                                reel = reels.Where(r => r.Qty > nowDemandQty).OrderBy(r => r.Qty).FirstOrDefault();
+                                reel = reels.Where(r => r.Qty > nowDemandSendQty).OrderBy(r => r.Qty).FirstOrDefault();
 
                                 if (reel == null)
                                 {
@@ -621,23 +604,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                         }
 
                         // 模拟添加发料临时表,且标记为已发
-                        //reelSendTempDtos.Add(new ReelSendTemp()
-                        //{
-                        //    Id = reel.Id,
-                        //    IsActive = true,
-                        //    PartNoId = readyMB.PartNoId,
-                        //    DemandQty = readyMB.DemandQty,
-                        //    DemandSendQty = nowDemandSendQty,
-                        //    IsSend = false,
-                        //    Qty = reel.Qty,
-                        //    SendQty = reel.Qty,
-                        //    StorageLocationId = reel.StorageLocationId,
-                        //    ReelMoveMethodId = ReReadyMBill.ReelMoveMethodId,
-                        //    ReReadyMBillId = ReReadyMBill.Id,
-                        //    ReadyMBillDetailedId = readyMB.Id,
-                        //    SlotId = readyMB.SlotId,
-                        //    BOMId = readyMB.BOMId
-                        //});
                         await _repositoryRST.InsertAsync(new ReelSendTemp()
                         {
                             Id = reel.Id,
@@ -758,7 +724,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             }
 
             // 判断本次备料单是否全部有备料记录
-            var rms = await _repositoryReadyMBill.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.Id) && r.ReReadyMBillId != null).Select(r => r.ReReadyMBillId).Distinct().ToListAsync();
+            var rms = await _repository.GetAll().Where(r => readyM.ReadyMBills.Select(rm => rm.Id).Contains(r.Id) && r.ReReadyMBillId != null).Select(r => r.ReReadyMBillId).Distinct().ToListAsync();
 
             // 有过备料记录的
             if (rms.Count > 1)
@@ -825,13 +791,13 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             //List<ReelShortTemp> reelShortTemps = new List<ReelShortTemp>();
 
             // 记账备料单
-            var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
+            var ReReadyMBill = await _repository.GetAll().Where(r => r.Id == readyM.ReReadyMBill).Include(r => r.WorkBills).ThenInclude(w => w.WorkBill).FirstOrDefaultAsync();
 
             // 添加备料绑定关系
 
             foreach (var readyItemDto in readyM.ReadyMBills)
             {
-                var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
+                var readyItem = await _repository.FirstOrDefaultAsync(readyItemDto.Id);
                 readyItem.ReadyMStatus = ReadyMStatus.InIssUe;
                 readyItem.ReReadyMBillId = ReReadyMBill.Id;
             }
@@ -976,20 +942,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 if (firstReel == null)
                 {
                     // 如果没有找到首料,添加该站位的首料缺料信息
-                    //var ReelShortTemp = new ReelShortTemp()
-                    //{
-                    //    DemandQty = readyBM.DemandQty,  // 用所有料的数量总和代替
-                    //    DemandSendQty = readyFirstMinimumQty,  // 需发为最小数量
-                    //    IsActive = true,
-                    //    PartNoId = readyBM.PartNoId, // 为所有可发物料
-                    //    ReReadyMBillId = ReReadyMBill.Id,
-                    //    ShortQty = readyFirstMinimumQty,
-                    //    SlotId = slot.Id,
-                    //    SelectQty = 0
-                    //};
-
-                    //reelShortTemps.Add(ReelShortTemp);
-
                     await _repositoryRSHT.InsertAsync(new ReelShortTemp()
                     {
                         DemandQty = readyBM.DemandQty,  // 用所有料的数量总和代替
@@ -1003,16 +955,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                     });
                 }
             }
-
-            //foreach (var item in reelSendTempDtos)
-            //{
-            //    await _repositoryRST.InsertAsync(item);
-            //}
-
-            //foreach (var item in reelShortTemps)
-            //{
-            //    await _repositoryRSHT.InsertAsync(item);
-            //}
 
             readyMResultDto.Success = true;
             readyMResultDto.Msg = "备料成功,打开备料看吧查询详情.";
@@ -1082,8 +1024,6 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
                 RackPositionId = s.RackPositionId
             }).ToList();
 
-            // LightService.LightOrder(simlights);
-
             var allLightOrder = simlights.GroupBy(s => new { s.MainBoardId, s.LightOrder, s.LightColor }).Select(s => new AllLight()
             {
                 LightColor = s.Key.LightColor,
@@ -1113,18 +1053,16 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
             if (_reelMoveLog.FirstOrDefault(r => r.ReceivedReelBillId == readyMid) == null)
             {
                 // 记账备料单
-                var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.ReReadyMBillId == readyMid).ToListAsync();
+                var ReReadyMBill = await _repository.GetAll().Where(r => r.ReReadyMBillId == readyMid).ToListAsync();
 
                 // 添加备料绑定关系
 
                 foreach (var readyItemDto in ReReadyMBill)
                 {
-                    var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
+                    var readyItem = await _repository.FirstOrDefaultAsync(readyItemDto.Id);
                     readyItem.ReadyMStatus = ReadyMStatus.Ready;
                 }
             }
-
-
 
             // 更新库位表
             foreach (var item in lights)
@@ -1194,13 +1132,13 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills
 
 
             // 记账备料单
-            var ReReadyMBill = await _repositoryReadyMBill.GetAll().Where(r => r.ReReadyMBillId == readyMid).ToListAsync();
+            var ReReadyMBill = await _repository.GetAll().Where(r => r.ReReadyMBillId == readyMid).ToListAsync();
 
             // 添加备料绑定关系
 
             foreach (var readyItemDto in ReReadyMBill)
             {
-                var readyItem = await _repositoryReadyMBill.FirstOrDefaultAsync(readyItemDto.Id);
+                var readyItem = await _repository.FirstOrDefaultAsync(readyItemDto.Id);
                 readyItem.ReadyMStatus = ReadyMStatus.Finish;
             }
 

@@ -24,10 +24,10 @@ namespace LY.WMSCloud.Entities
 
         public int? ParentId { get; set; }
 
-        public Org Parent { get; set; }
+        public virtual Org Parent { get; set; }
 
-        public ICollection<Org> Children { get; set; }
+        public virtual ICollection<Org> Children { get; set; }
 
-        public ICollection<Role> Roles { get; set; }
+        public virtual ICollection<Role> Roles { get; set; }
     }
 }

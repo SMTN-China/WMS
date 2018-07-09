@@ -76,7 +76,7 @@ namespace LY.WMSCloud.WMS.BaseData.BOMs
             //var taskList = query.Skip(input.SkipCount).Take(input.MaxResultCount).ToList();
 
             //ABP提供了扩展方法PageBy分页方式
-            var taskList = query.PageBy(input).Include(b => b.Customer).ToList();
+            var taskList = query.PageBy(input).ToList();
 
            
             return new PagedResultDto<ProductDto>(tasksCount, config.CreateMapper().Map<List<MPN>, List<ProductDto>>(taskList));

@@ -11,10 +11,10 @@ namespace LY.WMSCloud.Entities.ProduceData
     {
 
         public string ReadyMBillId { get; set; }
-        public ReadyMBill ReadyMBill { get; set; }
+        public virtual ReadyMBill ReadyMBill { get; set; }
 
         public string WorkBillId { get; set; }
-        public WorkBill WorkBill { get; set; }
+        public virtual WorkBill WorkBill { get; set; }
         
         /// <summary>
         /// 相关工单备料套数量

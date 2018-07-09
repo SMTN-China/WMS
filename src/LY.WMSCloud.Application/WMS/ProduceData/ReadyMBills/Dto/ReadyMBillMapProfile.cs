@@ -27,7 +27,7 @@ namespace LY.WMSCloud.WMS.ProduceData.ReadyMBills.Dto
 
             CreateMap<ReadyMBillDetailed, ReadyMBillDetailedDto>();
 
-            CreateMap<Slot, ReadySlot>();
+            //CreateMap<Slot, ReadySlot>();
         }
 
     }

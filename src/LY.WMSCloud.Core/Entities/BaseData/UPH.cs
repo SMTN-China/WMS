@@ -15,14 +15,12 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string ProductId { get; set; }
-        public MPN Product { get; set; }
 
         /// <summary>
         /// 线别
         /// </summary>
         [StringLength(36)]
         public string LineId { get; set; }
-        public Line Line { get; set; }
 
         /// <summary>
         /// 节拍周期

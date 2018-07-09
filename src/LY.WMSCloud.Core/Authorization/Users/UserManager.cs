@@ -11,6 +11,7 @@ using Abp.Domain.Uow;
 using Abp.Organizations;
 using Abp.Runtime.Caching;
 using LY.WMSCloud.Authorization.Roles;
+using System.Threading.Tasks;
 
 namespace LY.WMSCloud.Authorization.Users
 {
@@ -53,6 +54,12 @@ namespace LY.WMSCloud.Authorization.Users
                 organizationUnitSettings, 
                 settingManager)
         {
+        }
+
+        public virtual async Task<IdentityResult> ChangePasswordAsyncNoValid(User user, string newPassword)
+        {
+            await AbpStore.SetPasswordHashAsync(user, PasswordHasher.HashPassword(user, newPassword));
+            return IdentityResult.Success;
         }
     }
 }

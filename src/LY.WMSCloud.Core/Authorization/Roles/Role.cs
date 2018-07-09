@@ -33,7 +33,7 @@ namespace LY.WMSCloud.Authorization.Roles
 
         public int? OrgId { get; set; }
 
-        public Org Org { get; set; }
+        public virtual Org Org { get; set; }
 
         [StringLength(2000)]
         public string Remark { get; set; }

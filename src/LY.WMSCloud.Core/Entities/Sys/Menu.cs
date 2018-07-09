@@ -33,11 +33,11 @@ namespace LY.WMSCloud.Entities
 
         public int? ParentId { get; set; }
 
-        public Menu Parent { get; set; }
+        public virtual Menu Parent { get; set; }
         [StringLength(30)]
         public string Acl { get; set; }
 
-        public ICollection<Menu> Children { get; set; }
+        public virtual ICollection<Menu> Children { get; set; }
 
     }
 }

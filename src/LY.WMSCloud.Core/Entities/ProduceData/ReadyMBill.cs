@@ -19,9 +19,9 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// <summary>
         /// 所包含工单
         /// </summary>
-        public ICollection<ReadyMBillWorkBillMap> WorkBills { get; set; }
+        public virtual ICollection<ReadyMBillWorkBillMap> WorkBills { get; set; }
 
-        public ICollection<ReadyMBillDetailed> ReadyMBillDetailed { get; set; }
+        public virtual ICollection<ReadyMBillDetailed> ReadyMBillDetailed { get; set; }
 
         /// <summary>
         /// 记账单号
@@ -29,7 +29,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         [StringLength(36)]
         public string ReReadyMBillId { get; set; }
 
-        public ReadyMBill ReReadyMBill { get; set; }
+        public virtual ReadyMBill ReReadyMBill { get; set; }
 
         /// <summary>
         /// 备注
@@ -55,7 +55,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(30)]
         public string ReelMoveMethodId { get; set; }
-        public ReelMoveMethod ReelMoveMethod { get; set; }
+        public virtual ReelMoveMethod ReelMoveMethod { get; set; }
 
         /// <summary>
         /// 备料时长(小时),耗时

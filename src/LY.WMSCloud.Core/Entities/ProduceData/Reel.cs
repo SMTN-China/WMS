@@ -12,7 +12,7 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(36)]
         public string PartNoId { get; set; }
-        public MPN PartNo { get; set; }
+        public virtual MPN PartNo { get; set; }
 
         /// <summary>
         /// 数量
@@ -55,48 +55,40 @@ namespace LY.WMSCloud.Entities.ProduceData
         /// </summary>
         [StringLength(30)]
         public string ReadyMBillId { get; set; }
-        public ReadyMBill ReadyMBill { get; set; }
         /// <summary>
         /// 备料单明细Id
         /// </summary>
         [StringLength(36)]
         public string ReadyMBillDetailedId { get; set; }
-        public ReadyMBillDetailed ReadyMBillDetailed { get; set; }
-
         /// <summary>
         /// 工单号
         /// </summary>
         [StringLength(36)]
         public string WorkBillId { get; set; }
-        public WorkBill WorkBill { get; set; }
-
         /// <summary>
         /// 工单明细Id
         /// </summary>
         [StringLength(36)]
         public string WorkBillDetailedId { get; set; }
-        public WorkBillDetailed WorkBillDetailed { get; set; }
 
         /// <summary>
         /// 库位Id
         /// </summary>
         [StringLength(36)]
         public string StorageLocationId { get; set; }
-        public StorageLocation StorageLocation { get; set; }
+        public virtual StorageLocation StorageLocation { get; set; }
 
         /// <summary>
         /// 仓库Id
         /// </summary>
         [StringLength(36)]
         public string StorageId { get; set; }
-        public Storage Storage { get; set; }
 
         /// <summary>
         /// 收料单
         /// </summary>
         [StringLength(36)]
         public string ReceivedReelBillId { get; set; }
-        public ReceivedReelBill ReceivedReelBill { get; set; }
 
         /// <summary>
         /// Po
